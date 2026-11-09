@@ -1,0 +1,318 @@
+.cert-page {
+  background: #f8fafc;
+  min-height: 100vh;
+  padding-bottom: 60px;
+}
+
+/* HEADER */
+.cert-header {
+  text-align: center;
+  max-width: 700px;
+  margin: auto;
+  padding: 35px 20px 20px;
+}
+.cert-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #92400e;
+  background: #fef3c7;
+  padding: 5px 14px;
+  border-radius: 20px;
+}
+.cert-header h1 {
+  font-size: 32px;
+  font-weight: 800;
+  margin: 14px 0 12px;
+  color: #0f172a;
+}
+.cert-header p {
+  font-size: 14px;
+  color: #64748b;
+  line-height: 1.7;
+}
+
+/* TABS */
+.cert-tabs {
+  display: inline-flex;
+  background: #eef2f7;
+  padding: 5px;
+  border-radius: 10px;
+  margin-top: 24px;
+  gap: 4px;
+}
+.cert-tabs button {
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 500;
+  color: #475569;
+  background: transparent;
+  border: none;
+  padding: 9px 22px;
+  border-radius: 8px;
+  cursor: pointer;
+  max-width: 140px;
+  transition: 0.2s;
+}
+.cert-tabs button.active {
+  background: #fff;
+  color: #0f172a;
+  font-weight: 600;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* LOGIN CARD */
+.cert-card {
+  max-width: 400px;
+  margin: 30px auto 0;
+  background: #fff;
+  border: 2px solid #e2e8f0;
+  border-radius: 20px;
+  padding: 28px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.06);
+  text-align: center;
+}
+.cert-lock {
+  width: 44px;
+  height: 44px;
+  margin: 0 auto 12px;
+  background: #eef4ff;
+  border: 2px solid #c7dafd;
+  color: #1d4ed8;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.cert-card h2 {
+  font-size: 18px;
+  font-weight: 800;
+  color: #0f172a;
+}
+.cert-sub {
+  font-size: 11px;
+  color: #64748b;
+  line-height: 1.6;
+  margin: 8px 0 22px;
+}
+.cert-card form { text-align: left; }
+.cert-card label {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  color: #334155;
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+}
+
+/* INPUT WITH ICON */
+.cert-input {
+  position: relative;
+  margin-bottom: 16px;
+}
+.cert-input svg {
+  position: absolute;
+  left: 13px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #94a3b8;
+}
+.cert-input input {
+  width: 100%;
+  font-family: inherit;
+  font-size: 13px;
+  padding: 12px 14px 12px 38px;
+  border: 2px solid #e2e8f0;
+  border-radius: 10px;
+  background: #f8fafc;
+  outline: none;
+  transition: 0.2s;
+}
+.cert-input input:focus {
+  border-color: #1d4ed8;
+  background: #fff;
+}
+
+.cert-error {
+  color: #dc2626;
+  font-size: 12px;
+  margin-bottom: 10px;
+}
+
+/* BUTTON */
+.cert-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: #1d4ed8;
+  color: #fff;
+  border: none;
+  padding: 13px;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s;
+}
+.cert-btn:hover { background: #1e40af; }
+
+/* SAMPLE LOGINS */
+.cert-samples {
+  margin-top: 22px;
+  padding-top: 16px;
+  border-top: 1px solid #e2e8f0;
+  text-align: left;
+}
+.cert-samples small {
+  display: block;
+  font-size: 10px;
+  font-weight: 600;
+  color: #94a3b8;
+  letter-spacing: 0.5px;
+  margin-bottom: 10px;
+}
+.cert-sample {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  border: 2px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 9px 12px;
+  margin-bottom: 8px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+.cert-sample:hover { border-color: #93c5fd; background: #f8fbff; }
+.cert-sample b {
+  display: block;
+  font-size: 11px;
+  font-weight: 500;
+  color: #0f172a;
+}
+.cert-sample code {
+  font-size: 10px;
+  color: #64748b;
+  font-family: monospace;
+}
+.cert-tag {
+  font-size: 9px;
+  font-weight: 600;
+  padding: 4px 9px;
+  border-radius: 6px;
+  white-space: nowrap;
+}
+.cert-tag.green { background: #d1fae5; color: #047857; }
+.cert-tag.blue { background: #dbeafe; color: #1d4ed8; }
+
+/* RESULT (public check) */
+.cert-result {
+  display: flex;
+  gap: 10px;
+  text-align: left;
+  padding: 14px;
+  border-radius: 10px;
+  margin-top: 16px;
+  font-size: 12px;
+}
+.cert-result p { margin-top: 2px; }
+.cert-result.ok { background: #ecfdf5; color: #047857; border: 1px solid #a7f3d0; }
+.cert-result.bad { background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; }
+
+/* DASHBOARD (after login) */
+.cert-dash {
+  max-width: 700px;
+  margin: 30px auto 0;
+  padding: 0 20px;
+}
+.cert-dash-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 18px;
+}
+.cert-dash-top h2 { font-size: 20px; font-weight: 800; }
+.cert-dash-top p { font-size: 12px; color: #64748b; margin-top: 3px; }
+.cert-logout {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: inherit;
+  font-size: 12px;
+  background: #fff;
+  border: 2px solid #e2e8f0;
+  padding: 8px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.cert-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  margin-bottom: 20px;
+}
+.cert-stats div {
+  background: #fff;
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 14px;
+}
+.cert-stats small { display: block; font-size: 10px; color: #94a3b8; margin-bottom: 4px; }
+.cert-stats b { font-size: 13px; }
+.cert-status.approved { color: #047857; }
+.cert-status.pending { color: #b45309; }
+.cert-status.none { color: #64748b; }
+
+.cert-box {
+  background: #fff;
+  border: 2px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 24px;
+  text-align: center;
+  font-size: 13px;
+  color: #475569;
+}
+.cert-box .cert-btn { max-width: 260px; margin: 14px auto 0; }
+
+/* CERTIFICATE PAPER */
+.cert-paper {
+  background: #fff;
+  border: 8px double #1d4ed8;
+  padding: 40px 30px;
+  text-align: center;
+  margin-bottom: 18px;
+}
+.cert-paper-icon { color: #d97706; }
+.cert-paper-small { font-size: 11px; letter-spacing: 3px; color: #64748b; margin: 8px 0; }
+.cert-paper h1 { font-size: 30px; color: #1d4ed8; margin-bottom: 14px; }
+.cert-paper p { font-size: 13px; color: #475569; line-height: 1.8; }
+.cert-paper-name {
+  font-size: 28px;
+  font-family: Georgia, serif;
+  font-style: italic;
+  margin: 8px 0 12px;
+  color: #0f172a;
+}
+.cert-paper-id {
+  margin-top: 20px;
+  font-size: 11px;
+  font-family: monospace;
+  color: #94a3b8;
+}
+
+/* PRINT: shudhu certificate print hobe */
+@media print {
+  .navbar, .cert-no-print { display: none !important; }
+  .cert-page { background: #fff; }
+}
+
+/* MOBILE */
+@media (max-width: 600px) {
+  .cert-header h1 { font-size: 24px; }
+  .cert-stats { grid-template-columns: 1fr; }
+}
