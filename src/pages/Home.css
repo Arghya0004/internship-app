@@ -1,25 +1,19 @@
 .home { background: linear-gradient(180deg, #f5f8ff 0%, #fff 45%); }
 
 /* HERO */
-.hero { text-align: center; padding: 60px 20px 40px; max-width: 900px; margin: auto; }
+.hero { text-align: center; padding: 60px 20px 50px; max-width: 900px; margin: auto; }
 .badge { display: inline-block; font-size: 12px; color: #2563eb; background: #eef4ff;
   border: 1px solid #c7dafd; padding: 6px 14px; border-radius: 20px; }
 .hero h1 { font-size: 48px; font-weight: 800; line-height: 1.15; margin: 24px 0 16px; }
 .blue { color: #1d4ed8; }
 .hero-sub { color: #64748b; max-width: 620px; margin: auto; line-height: 1.6; font-size: 15px; }
-.hero-btns { display: flex; gap: 12px; justify-content: center; margin: 28px 0; flex-wrap: wrap; }
 
+/* Shared button styles (onno page/component e use hole kaje lagbe, tai rakhlam) */
 .btn { padding: 11px 22px; border-radius: 8px; font-weight: 600; font-size: 14px; transition: .2s; }
 .btn:hover { transform: translateY(-2px); }
 .btn-primary { background: #1d4ed8; color: #fff; }
 .btn-dark { background: #0f172a; color: #fff; }
 .btn-outline { background: #fff; color: #334155; border: 1px solid #cbd5e1; }
-
-.short-title { display: block; font-size: 10px; color: #94a3b8; letter-spacing: 1px; margin-bottom: 10px; }
-.chip { font-size: 11px; padding: 5px 12px; border-radius: 6px; margin: 4px; cursor: pointer; background: #fff; }
-.chip.green { border: 1px solid #86efac; color: #15803d; }
-.chip.blue { border: 1px solid #93c5fd; color: #1d4ed8; }
-.chip.yellow { border: 1px solid #fcd34d; color: #92400e; }
 
 /* COMMON SECTION */
 .section { max-width: 1000px; margin: auto; padding: 50px 20px; text-align: center; }
@@ -67,3 +61,4 @@
 @media (max-width: 560px) {
   .grid-4, .grid-3 { grid-template-columns: 1fr; }
 }
+
