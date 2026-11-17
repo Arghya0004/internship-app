@@ -1,0 +1,81 @@
+.reg-page {
+  min-height: 100vh;
+  background: #f1f5f9;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 40px 16px;
+  font-family: "Inter", system-ui, sans-serif;
+}
+
+.reg-card {
+  width: 100%;
+  max-width: 440px;
+  background: #fff;
+  border: 2px solid #e2e8f0;
+  border-radius: 18px;
+  padding: 28px;
+  display: grid;
+  gap: 14px;
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.05);
+}
+
+.reg-head { text-align: center; margin-bottom: 4px; }
+.reg-head h2 { margin: 10px 0 4px; font-size: 22px; font-weight: 800; color: #0f172a; }
+.reg-head p { margin: 0; font-size: 12px; color: #64748b; }
+.reg-icon {
+  width: 44px; height: 44px; margin: 0 auto;
+  background: #eff6ff; color: #2563eb; border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+}
+
+.reg-card label {
+  display: flex; flex-direction: column; gap: 5px;
+  font-size: 12px; font-weight: 600; color: #334155;
+}
+.reg-card input {
+  border: 2px solid #cbd5e1;
+  background: #f8fafc;
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 13px;
+  font-family: inherit;
+  outline: none;
+  transition: 0.2s;
+}
+.reg-card input:focus { border-color: #2563eb; background: #fff; }
+
+.reg-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+.reg-btn {
+  background: #1d5cff; color: #fff; border: none; border-radius: 8px;
+  padding: 12px; font-size: 13px; font-weight: 700; cursor: pointer; transition: 0.2s;
+}
+.reg-btn:hover { background: #1448cc; }
+
+.reg-foot { margin: 0; text-align: center; font-size: 12px; color: #64748b; }
+.reg-foot a { color: #2563eb; font-weight: 700; text-decoration: none; }
+
+/* ===== Success ===== */
+.reg-success { text-align: center; }
+.reg-success h2 { margin: 0; font-size: 22px; font-weight: 800; }
+.reg-success p { margin: 0; font-size: 13px; color: #475569; line-height: 1.5; }
+.reg-success-icon {
+  width: 56px; height: 56px; margin: 0 auto;
+  background: #ecfdf5; color: #059669; border: 2px solid #6ee7b7; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+}
+.reg-id-box {
+  display: flex; justify-content: space-between; align-items: center;
+  background: #eff6ff; border: 2px solid #bfdbfe; border-radius: 10px; padding: 12px 16px;
+}
+.reg-id-box span { font-family: Consolas, monospace; font-size: 18px; font-weight: 800; color: #1d4ed8; }
+.reg-id-box button {
+  display: inline-flex; align-items: center; gap: 5px;
+  background: #fff; border: 1px solid #93c5fd; color: #1d4ed8;
+  font-size: 11px; font-weight: 700; padding: 6px 10px; border-radius: 6px; cursor: pointer;
+}
+
+@media (max-width: 480px) {
+  .reg-row { grid-template-columns: 1fr; }
+}

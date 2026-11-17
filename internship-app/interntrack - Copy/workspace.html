@@ -1,0 +1,54 @@
+<!DOCTYPE html><html lang="en">
+<head>
+  <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+      <title>InternTrack - Student Workspace</title>
+      <link rel="stylesheet" href="css/style.css">
+        <style>
+          .cal{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;text-align:center}
+          .cal div{padding:10px 0;border-radius:8px;font-size:14px}
+          .cal .dow{font-size:11px;color:var(--muted);font-weight:700}
+          .cal .logged{background:#dcfce7;color:var(--green);font-weight:700}
+          .cal .sel{outline:2px solid var(--blue)}
+          .tag{display:inline-block;border:1px solid var(--line);padding:4px 10px;border-radius:8px;margin:3px;cursor:pointer;font-size:13px}
+          .tag.on{background:var(--blue);color:#fff}
+          .entry{border-bottom:1px solid var(--line);padding:10px 0;font-size:14px}
+          .calc{background:#eef2ff;border-radius:12px;padding:14px;display:flex;justify-content:space-between;margin-top:14px}
+          .calc b{font-size:24px}
+        </style>
+</head>
+<body>
+<div class="nav">
+  <span class="logo">🔑 InternTrack</span>
+  <span><a href="#">Home</a><a href="#">About</a><a href="#">Contact Us</a><a href="certificate.html">Certificate Generator</a></span>
+  <span><span class="badge" id="who"></span> 
+  <a href="#" onclick="logout()">Logout</a></span></div>
+<div class="container">
+  <div class="card" style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px">
+    <div><h1 id="name"></h1><span class="badge" id="sid"></span> <span class="badge">Active Intern</span>
+      <p class="hint" id="course" style="color:var(--muted);margin-top:8px"></p></div>
+    <a href="certificate.html"><button class="btn orange">View Generated Certificate</button></a>
+  </div>
+  <div class="grid stats">
+    <div class="card stat"><small>TOTAL LOGGED</small><b id="total">0</b>hrs</div>
+    <div class="card stat"><small>DAYS ACTIVE</small><b id="days">0</b>days</div>
+    <div class="card stat"><small>DAILY AVERAGE</small><b id="avg">0</b>hrs/day</div>
+    <div class="card stat"><small>CERTIFICATE STATUS</small><b style="font-size:18px" id="cert"></b></div>
+  </div>
+  <div class="grid two" style="margin-top:16px">
+    <div class="card">
+      <h3>Record Daily Work & Attendance</h3>
+      <label>Work Date</label><input type="date" id="date">
+      <div class="grid two" style="gap:10px"><div><label>Entry Time</label><input type="time" id="in" value="09:30"></div>
+      <div><label>Exit Time</label><input type="time" id="out" value="17:30"></div></div>
+      <div class="calc"><span>Calculated Work Duration</span><b id="dur">8 Hours</b></div>
+      <label>Daily Work Log / Deliverables</label>
+      <textarea id="log" rows="4" placeholder="Describe modules developed, bugs solved..."></textarea>
+      <label>Technologies / Tools Used</label><div id="tags"></div><br>
+      <button class="btn" id="save">Submit Daily Timesheet & Log</button>
+    </div>
+    <div class="card"><h3>Timesheet History (<span id="count">0</span>)</h3><div id="history"></div></div>
+  </div>
+  <div class="card"><h3>Attendance Calendar <span id="monthName"></span></h3><br><div class="cal" id="cal"></div></div>
+</div>
+<script src="js/data.js"></script><script src="js/workspace.js"></script></body></html>

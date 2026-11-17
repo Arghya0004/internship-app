@@ -1,0 +1,46 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>InternTrack - Login</title><link rel="stylesheet" href="css/style.css">
+<style>
+ body{display:grid;place-items:center;min-height:100vh;padding:16px}
+ .box{max-width:460px;width:100%;background:#fff;border-radius:24px;box-shadow:0 20px 50px #0002;overflow:hidden}
+ .head{padding:20px;background:#f8fafc;display:flex;gap:14px;align-items:center}
+ .icon{background:var(--blue);color:#fff;width:46px;height:46px;border-radius:12px;display:grid;place-items:center;font-size:22px}
+ .tabs{display:flex;background:#f1f5f9;padding:8px;gap:6px}
+ .tab{flex:1;padding:12px;border:0;background:none;border-radius:12px;font-weight:600;cursor:pointer;color:var(--muted)}
+ .tab.active{background:#fff;color:var(--blue);box-shadow:0 2px 6px #0001}
+ .body{padding:24px}.hint{font-size:13px;color:var(--muted);margin-top:6px}
+ .quick{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+ .q{border:1px solid var(--line);border-radius:14px;padding:12px;cursor:pointer;background:#fff;text-align:left}
+ .q small{display:block;color:var(--muted);font-family:monospace}
+ #msg{color:#dc2626;margin-top:10px;font-size:14px}
+</style></head><body>
+<div class="box">
+  <div class="head"><div class="icon">🔑</div><div><h2>Portal Authentication</h2>
+  <p class="hint">Access student workspace or administrative console</p></div></div>
+  <div class="tabs">
+    <button class="tab active" data-tab="student">Student Login</button>
+    <button class="tab" data-tab="register">New Registration</button>
+    <button class="tab" data-tab="admin">Admin</button>
+  </div>
+  <div class="body">
+    <form id="form">
+      <div id="regOnly" class="hidden"><label>Full name</label><input id="fullname" placeholder="Your name"></div>
+      <label id="idLabel">Student Login ID or Email</label>
+      <input id="uid" placeholder="e.g. INT-2026-8821 or email">
+      <p class="hint" id="idHint">Provided during registration after administrative confirmation.</p>
+      <label>Password</label><input id="pwd" type="password" placeholder="Enter your account password">
+      <p id="msg"></p><br>
+      <button class="btn" id="submitBtn" type="submit">Sign In to Student Workspace →</button>
+    </form>
+    <div id="quickBox"><hr style="margin:22px 0;border:0;border-top:1px solid var(--line)">
+      <label>Quick test accounts (click to fill):</label>
+      <div class="quick">
+        <div class="q" data-id="INT-2026-8821"><b>Shruti Bhattacharya</b><small>INT-2026-8821</small><span style="color:var(--green);font-size:13px">Certified & Approved</span></div>
+        <div class="q" data-id="INT-2026-4402"><b>XYZ Adhya</b><small>INT-2026-4402</small><span style="color:var(--blue);font-size:13px">Active (Logging Hours)</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="js/data.js"></script><script src="js/auth.js"></script>
+</body></html>
