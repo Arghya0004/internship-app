@@ -2,6 +2,8 @@
 import { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { useAuthModal } from "../context/authModalContext";
+import { clearAuthSession } from "../utils/auth";
 
 import {
   Clock,
@@ -104,7 +106,7 @@ function StudentDashboard() {
 
   useEffect(() => {
     if (!token || !studentId) {
-      navigate("/login/student");
+      navigate("/");
       return;
     }
 
@@ -231,12 +233,17 @@ function StudentDashboard() {
   // LOGOUT
   // =====================================
 
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("student");
-    localStorage.removeItem("studentId");
+  const { requestLogout } = useAuthModal();
 
-    navigate("/");
+  const handleLogout = () => {
+    requestLogout({
+      title: "Confirm Logout",
+      message: "Are you sure you want to log out of your student workspace?",
+      onConfirm: () => {
+        clearAuthSession();
+        window.location.href = "/";
+      },
+    });
   };
 
   if (!student) return null;

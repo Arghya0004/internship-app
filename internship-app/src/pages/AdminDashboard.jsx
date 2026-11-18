@@ -1575,6 +1575,8 @@ import axios from "axios";
 import "./AdminDashboard.css";
 
 import useDbSync from "../utils/useDbSync";
+import { useAuthModal } from "../context/authModalContext";
+import { clearAuthSession } from "../utils/auth";
 
 import {
   getStudents,
@@ -1670,6 +1672,7 @@ const formatHours = (value) => {
 
 function AdminDashboard() {
   useDbSync();
+  const { requestLogout } = useAuthModal();
 
   const [activeTab, setActiveTab] = useState("approvals");
   const [internFilter, setInternFilter] = useState("All Interns");
@@ -2219,19 +2222,14 @@ function AdminDashboard() {
   // ================= LOGOUT =================
 
   function handleLogout() {
-    if (!window.confirm("Are you sure you want to log out?")) return;
-
-    localStorage.removeItem("user");
-    localStorage.removeItem("student");
-    localStorage.removeItem("admin");
-    localStorage.removeItem("studentId");
-    localStorage.removeItem("studentToken");
-    localStorage.removeItem("adminToken");
-    localStorage.removeItem("userRole");
-    localStorage.removeItem("token");
-    localStorage.removeItem("currentUser");
-
-    window.location.href = "/";
+    requestLogout({
+      title: "Confirm Logout",
+      message: "Are you sure you want to log out of the admin console?",
+      onConfirm: () => {
+        clearAuthSession();
+        window.location.href = "/";
+      },
+    });
   }
 
   // ================= SIDEBAR TABS =================

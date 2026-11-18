@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 
 import { useAuthModal } from "../context/authModalContext";
+import { getAuthUser, clearAuthSession } from "../utils/auth";
 import GooeyNav from "./GooeyNav";
 import "./Navbar.css";
 
@@ -23,7 +24,7 @@ export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const wrapRef = useRef(null);
 
-  const { openAuth } = useAuthModal();
+  const { openAuth, requestLogout } = useAuthModal();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -40,55 +41,24 @@ export default function Navbar() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // Student Dashboard detect
-  const isStudentDashboard =
-    location.pathname.toLowerCase().includes("student") &&
-    location.pathname.toLowerCase().includes("dashboard");
-
-  // Sync authentication state from localStorage
+  // Sync authentication state from localStorage and system events
   useEffect(() => {
     const syncAuth = () => {
-      try {
-        const currentStr = localStorage.getItem("currentUser");
-        if (currentStr) {
-          const parsed = JSON.parse(currentStr);
-          if (parsed && (parsed.role || parsed.name || parsed.id)) {
-            setAuthUser(parsed);
-            return;
-          }
-        }
-
-        const role = localStorage.getItem("userRole");
-        if (role === "admin" || localStorage.getItem("adminToken")) {
-          const adminStr = localStorage.getItem("admin");
-          const admin = adminStr ? JSON.parse(adminStr) : null;
-          setAuthUser({
-            role: "admin",
-            name: admin?.loginId || admin?.name || "Admin",
-          });
-          return;
-        }
-
-        const studentStr = localStorage.getItem("student");
-        if (studentStr || localStorage.getItem("token")) {
-          const student = studentStr ? JSON.parse(studentStr) : null;
-          setAuthUser({
-            role: "student",
-            name: student?.name || "Student",
-            id: student?.id,
-          });
-          return;
-        }
-
-        setAuthUser(null);
-      } catch {
-        setAuthUser(null);
-      }
+      setAuthUser(getAuthUser());
     };
 
     syncAuth();
     window.addEventListener("storage", syncAuth);
-    return () => window.removeEventListener("storage", syncAuth);
+    window.addEventListener("db-change", syncAuth);
+    window.addEventListener("auth-change", syncAuth);
+    window.addEventListener("popstate", syncAuth);
+
+    return () => {
+      window.removeEventListener("storage", syncAuth);
+      window.removeEventListener("db-change", syncAuth);
+      window.removeEventListener("auth-change", syncAuth);
+      window.removeEventListener("popstate", syncAuth);
+    };
   }, [location.pathname]);
 
   // Dropdown outside click
@@ -110,20 +80,18 @@ export default function Navbar() {
     openAuth(tab);
   };
 
-  // Logout handler
+  // Logout handler with confirmation dialogue
   const handleLogout = () => {
-    localStorage.removeItem("student");
-    localStorage.removeItem("token");
-    localStorage.removeItem("studentId");
-    localStorage.removeItem("admin");
-    localStorage.removeItem("adminToken");
-    localStorage.removeItem("userRole");
-    localStorage.removeItem("currentUser");
-    localStorage.removeItem("user");
-
-    setOpen(false);
-    setAuthUser(null);
-    navigate("/");
+    requestLogout({
+      title: "Confirm Logout",
+      message: "Are you sure you want to log out of your account?",
+      onConfirm: () => {
+        clearAuthSession();
+        setOpen(false);
+        setAuthUser(null);
+        navigate("/");
+      },
+    });
   };
 
   // Primary navigation items
@@ -196,7 +164,7 @@ export default function Navbar() {
 
         {/* SECONDARY ACTIONS (LOGOUT / PROFILE / LOGIN) */}
         <div className="nav-actions">
-          {authUser || isStudentDashboard ? (
+          {Boolean(authUser) ? (
             <div className="auth-user-section">
               <div className="user-profile-badge">
                 <span className="user-avatar-icon">
