@@ -1,4 +1,5 @@
 import GlowCursor from "../components/GlowCursor";
+import TiltedCard from "../components/TiltedCard";
 import "./Home.css";
 
 const steps = [
@@ -49,11 +50,27 @@ export default function Home() {
 
           <div className="grid grid-4">
             {steps.map((s) => (
-              <div className="card" key={s.n}>
-                <span className="num" style={{ background: s.bg, color: s.color }}>{s.n}</span>
-                <h4>{s.title}</h4>
-                <p>{s.desc}</p>
-              </div>
+              <TiltedCard
+                key={s.n}
+                className="workflow-tilted-card"
+                containerWidth="100%"
+                containerHeight="205px"
+                imageWidth="100%"
+                imageHeight="100%"
+                scaleOnHover={1.05}
+                rotateAmplitude={12}
+                radius={10}
+                showTooltip={false}
+                glare={0.4}
+                glareColor="#ffffff"
+                shadow={0.3}
+              >
+                <div className="card-workflow">
+                  <span className="num" style={{ background: s.bg, color: s.color }}>{s.n}</span>
+                  <h4>{s.title}</h4>
+                  <p>{s.desc}</p>
+                </div>
+              </TiltedCard>
             ))}
           </div>
         </section>
