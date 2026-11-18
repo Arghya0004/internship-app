@@ -1,4 +1,5 @@
 import { Clock, ShieldCheck, Award } from "lucide-react";
+import MagicBento from "../components/MagicBento";
 import "./About.css";
 
 const features = [
@@ -43,17 +44,32 @@ export default function About() {
 
       {/* ===== 3 FEATURE CARDS ===== */}
       <section className="about-container">
-        <div className="about-grid">
-          {features.map((f) => (
-            <div className="about-card" key={f.title}>
-              <div className="about-icon" style={{ background: f.bg, color: f.color }}>
-                {f.icon}
+        <MagicBento
+          theme="light"
+          glowColor="#2563eb"
+          columns={3}
+          gap={22}
+          radius={18}
+          enableTilt={true}
+          enableMagnetism={true}
+          enableBorderGlow={true}
+          enableSpotlight={true}
+          enableStars={true}
+          clickEffect={true}
+          textAutoHide={false}
+          items={features.map((f) => ({
+            id: f.title,
+            content: (
+              <div className="about-bento-content">
+                <div className="about-icon" style={{ background: f.bg, color: f.color }}>
+                  {f.icon}
+                </div>
+                <h3>{f.title}</h3>
+                <p>{f.desc}</p>
               </div>
-              <h3>{f.title}</h3>
-              <p>{f.desc}</p>
-            </div>
-          ))}
-        </div>
+            ),
+          }))}
+        />
       </section>
 
       {/* ===== GOVERNANCE BOX ===== */}
