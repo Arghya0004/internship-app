@@ -1,5 +1,6 @@
 import GlowCursor from "../components/GlowCursor";
 import TiltedCard from "../components/TiltedCard";
+import BorderGlow from "../components/BorderGlow";
 import "./Home.css";
 
 const steps = [
@@ -65,11 +66,21 @@ export default function Home() {
                 glareColor="#ffffff"
                 shadow={0.3}
               >
-                <div className="card-workflow">
-                  <span className="num" style={{ background: s.bg, color: s.color }}>{s.n}</span>
-                  <h4>{s.title}</h4>
-                  <p>{s.desc}</p>
-                </div>
+                <BorderGlow
+                  backgroundColor="#ffffff"
+                  borderRadius={10}
+                  glowColor="221 83 60"
+                  colors={['#3b82f6', '#60a5fa', '#93c5fd']}
+                  edgeSensitivity={25}
+                  glowRadius={30}
+                  className="workflow-border-glow"
+                >
+                  <div className="card-workflow">
+                    <span className="num" style={{ background: s.bg, color: s.color }}>{s.n}</span>
+                    <h4>{s.title}</h4>
+                    <p>{s.desc}</p>
+                  </div>
+                </BorderGlow>
               </TiltedCard>
             ))}
           </div>
