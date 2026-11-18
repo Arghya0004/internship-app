@@ -77,6 +77,8 @@ function StudentDashboard() {
 
   const [loading, setLoading] = useState(false);
   const [exitLoading, setExitLoading] = useState(false);
+  const [confirmLoading, setConfirmLoading] = useState(false);
+  const [isConfirmedLocal, setIsConfirmedLocal] = useState(false);
 
   const [message, setMessage] = useState("");
 
@@ -134,11 +136,6 @@ function StudentDashboard() {
   // =====================================
 
   const submitAttendance = async () => {
-    if (!work.trim()) {
-      setMessage("Please enter your daily work.");
-      return;
-    }
-
     try {
       setLoading(true);
       setMessage("");
@@ -150,7 +147,6 @@ function StudentDashboard() {
         `${API}/entry`,
         {
           entryTime: currentEntryTime,
-          dailyWork: work,
           technologies: selectedTech,
         },
         authConfig
@@ -158,10 +154,8 @@ function StudentDashboard() {
 
       setMessage(
         res.data.message ||
-        `Entry recorded successfully at ${currentEntryTime}!`
+        `Entry recorded successfully at ${currentEntryTime}! You can now type and confirm your daily work log.`
       );
-
-      setWork("");
 
       await loadHistory();
 
@@ -173,6 +167,48 @@ function StudentDashboard() {
 
     } finally {
       setLoading(false);
+    }
+  };
+
+  // =====================================
+  // CONFIRM DAILY WORK LOG
+  // =====================================
+
+  const submitWorkLog = async () => {
+    if (!work.trim()) {
+      setMessage("Please enter your daily work log before confirming.");
+      return;
+    }
+
+    try {
+      setConfirmLoading(true);
+      setMessage("");
+
+      const res = await axios.post(
+        `${API}/confirm-log`,
+        {
+          dailyWork: work,
+          technologies: selectedTech,
+        },
+        authConfig
+      );
+
+      setIsConfirmedLocal(true);
+      setMessage(
+        res.data.message ||
+        "Daily work log confirmed successfully! You can now mark exit when your shift ends."
+      );
+
+      await loadHistory();
+
+    } catch (error) {
+      setMessage(
+        error.response?.data?.message ||
+        "Failed to confirm daily work log."
+      );
+
+    } finally {
+      setConfirmLoading(false);
     }
   };
 
@@ -244,6 +280,29 @@ function StudentDashboard() {
   const todayAttendance = history.find(
     (item) => item.date === today
   );
+
+  const isEntryMarked = !!todayAttendance;
+  const isExitMarked = !!todayAttendance?.exitTime;
+  const isLogConfirmed = !!(
+    isConfirmedLocal ||
+    todayAttendance?.isLogConfirmed ||
+    (todayAttendance?.dailyWork && todayAttendance.dailyWork.trim() && todayAttendance?.exitTime)
+  );
+
+  // Sync work text and tech tags if already in attendance record
+  useEffect(() => {
+    if (todayAttendance) {
+      if (todayAttendance.dailyWork && (!work || isLogConfirmed)) {
+        setWork(todayAttendance.dailyWork);
+      }
+      if (todayAttendance.isLogConfirmed) {
+        setIsConfirmedLocal(true);
+      }
+      if (Array.isArray(todayAttendance.technologies) && todayAttendance.technologies.length > 0) {
+        setSelectedTech(todayAttendance.technologies);
+      }
+    }
+  }, [todayAttendance, isLogConfirmed]);
 
   // =====================================
   // LOGOUT
@@ -581,19 +640,21 @@ function StudentDashboard() {
             <div className="duration-value">
 
               <h2>
-                {todayAttendance
-                  ? todayAttendance.exitTime
-                    ? "Completed"
-                    : "Currently Working"
-                  : "Not Started"}
+                {isExitMarked
+                  ? "Completed"
+                  : isEntryMarked
+                    ? isLogConfirmed
+                      ? "Shift Active (Log Confirmed)"
+                      : "Shift Active (Log Pending)"
+                    : "Not Started"}
               </h2>
 
               <small>
-                {todayAttendance
-                  ? `${todayAttendance.entryTime} – ${
-                      todayAttendance.exitTime || "Pending"
-                    }`
-                  : "Click Entry button to start"}
+                {isExitMarked
+                  ? `${todayAttendance.entryTime} – ${todayAttendance.exitTime}`
+                  : isEntryMarked
+                    ? `${todayAttendance.entryTime} – Exit Pending (${isLogConfirmed ? "Log Confirmed" : "Please confirm log"})`
+                    : "Click Mark Entry Now button to start"}
               </small>
 
             </div>
@@ -617,7 +678,7 @@ function StudentDashboard() {
 
           {/* DAILY WORK */}
 
-          <label className="work-label">
+          <label className={`work-label ${!isEntryMarked || isLogConfirmed ? "attendance-dimmed" : ""}`}>
 
             Manual Daily Work Log / Deliverables *
 
@@ -625,15 +686,41 @@ function StudentDashboard() {
               value={work}
               onChange={(e) => setWork(e.target.value)}
               placeholder="Detail the modules developed, bugs solved, or project work completed today..."
-              disabled={!!todayAttendance}
+              disabled={!isEntryMarked || isLogConfirmed}
             />
 
           </label>
 
+          {/* CONFIRM BUTTON UNDER LOG PLACEHOLDER */}
+          <div className="work-log-actions">
+            <button
+              type="button"
+              className={`confirm-log-btn ${isLogConfirmed ? "confirmed" : ""} ${!isEntryMarked || isLogConfirmed ? "attendance-dimmed" : ""}`}
+              onClick={submitWorkLog}
+              disabled={!isEntryMarked || isLogConfirmed || confirmLoading || !work.trim()}
+              title={
+                !isEntryMarked
+                  ? "Mark entry first to unlock work log"
+                  : isLogConfirmed
+                    ? "Work log already confirmed"
+                    : !work.trim()
+                      ? "Type your daily log to enable confirmation"
+                      : "Confirm your daily work log"
+              }
+            >
+              <CheckCircle size={16} />
+              {confirmLoading
+                ? "Confirming Work Log..."
+                : isLogConfirmed
+                  ? "✔ Daily Work Log Confirmed"
+                  : "Confirm Daily Work Log"}
+            </button>
+          </div>
+
 
           {/* TECHNOLOGIES */}
 
-          <div className="tech-section">
+          <div className={`tech-section ${!isEntryMarked || isLogConfirmed ? "attendance-dimmed" : ""}`}>
 
             <p>TECHNOLOGIES / TOOLS ENGAGED:</p>
 
@@ -650,7 +737,7 @@ function StudentDashboard() {
                   }
                   onClick={() => toggleTech(tech)}
                   type="button"
-                  disabled={!!todayAttendance}
+                  disabled={!isEntryMarked || isLogConfirmed}
                 >
                   {tech}
                 </button>
@@ -672,19 +759,16 @@ function StudentDashboard() {
 
             <button
               type="button"
-              className="submit-timesheet entry-button"
+              className={`submit-timesheet entry-button ${isEntryMarked ? "attendance-dimmed" : ""}`}
               onClick={submitAttendance}
-              disabled={
-                loading ||
-                !!todayAttendance
-              }
+              disabled={loading || isEntryMarked}
             >
 
               <Send size={17} />
 
               {loading
                 ? "Recording Entry..."
-                : todayAttendance
+                : isEntryMarked
                   ? "Entry Already Recorded"
                   : "Mark Entry Now"}
 
@@ -695,12 +779,13 @@ function StudentDashboard() {
 
             <button
               type="button"
-              className="submit-timesheet exit-button"
+              className={`submit-timesheet exit-button ${!isEntryMarked || !isLogConfirmed || isExitMarked ? "attendance-dimmed" : ""}`}
               onClick={submitExit}
               disabled={
                 exitLoading ||
-                !todayAttendance ||
-                !!todayAttendance?.exitTime
+                !isEntryMarked ||
+                !isLogConfirmed ||
+                isExitMarked
               }
             >
 
@@ -708,9 +793,13 @@ function StudentDashboard() {
 
               {exitLoading
                 ? "Recording Exit..."
-                : todayAttendance?.exitTime
+                : isExitMarked
                   ? "Exit Already Recorded"
-                  : "Mark Exit Now"}
+                  : !isEntryMarked
+                    ? "Mark Exit Now (Mark Entry First)"
+                    : !isLogConfirmed
+                      ? "Mark Exit Now (Confirm Log First)"
+                      : "Mark Exit Now"}
 
             </button>
 

@@ -45,13 +45,7 @@ router.post("/entry", protect, async (req, res) => {
     }
 
     const studentId = req.user.id;
-    const { dailyWork } = req.body;
-
-    if (!dailyWork || !dailyWork.trim()) {
-      return res.status(400).json({
-        message: "Daily work is required.",
-      });
-    }
+    const { dailyWork = "", technologies = [] } = req.body;
 
     const student = await Student.findById(studentId);
 
@@ -79,7 +73,9 @@ router.post("/entry", protect, async (req, res) => {
       student: studentId,
       date,
       entryTime,
-      dailyWork: dailyWork.trim(),
+      dailyWork: (dailyWork || "").trim(),
+      technologies: Array.isArray(technologies) ? technologies : [],
+      isLogConfirmed: false,
       status: "Present",
     });
 
@@ -99,6 +95,60 @@ router.post("/entry", protect, async (req, res) => {
 
     return res.status(500).json({
       message: "Entry failed.",
+      error: error.message,
+    });
+  }
+});
+
+// =====================================
+// CONFIRM DAILY WORK LOG
+// =====================================
+
+router.post("/confirm-log", protect, async (req, res) => {
+  try {
+    if (req.user.role !== "student") {
+      return res.status(403).json({
+        message: "Student access only.",
+      });
+    }
+
+    const studentId = req.user.id;
+    const { dailyWork, technologies } = req.body;
+
+    if (!dailyWork || !dailyWork.trim()) {
+      return res.status(400).json({
+        message: "Daily work log cannot be empty.",
+      });
+    }
+
+    const { date } = getIndiaDateTime();
+
+    const attendance = await Attendance.findOne({
+      student: studentId,
+      date,
+    });
+
+    if (!attendance) {
+      return res.status(404).json({
+        message: "Entry time not recorded for today. Please mark entry first.",
+      });
+    }
+
+    attendance.dailyWork = dailyWork.trim();
+    if (Array.isArray(technologies)) {
+      attendance.technologies = technologies;
+    }
+    attendance.isLogConfirmed = true;
+    await attendance.save();
+
+    return res.status(200).json({
+      message: "Daily work log confirmed successfully.",
+      attendance,
+    });
+  } catch (error) {
+    console.error("Confirm Log Error:", error);
+    return res.status(500).json({
+      message: "Failed to confirm work log.",
       error: error.message,
     });
   }
@@ -157,13 +207,13 @@ router.post("/exit", protect, async (req, res) => {
     const entryMinutes = entryHour * 60 + entryMinute;
     const exitMinutes = exitHour * 60 + exitMinute;
 
-    if (exitMinutes <= entryMinutes) {
+    if (exitMinutes < entryMinutes) {
       return res.status(400).json({
         message: "Exit time must be after entry time.",
       });
     }
 
-    const totalMinutes = exitMinutes - entryMinutes;
+    const totalMinutes = Math.max(1, exitMinutes - entryMinutes);
 
     attendance.exitTime = exitTime;
 
