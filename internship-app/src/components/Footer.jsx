@@ -113,10 +113,6 @@ export default function Footer() {
               <ChevronRight size={15} /> Contact Us
             </Link>
 
-            <Link to="/certificate">
-              <ChevronRight size={15} /> Certificate Generator
-            </Link>
-
           </div>
 
           {/* STUDENT AND ADMIN */}
