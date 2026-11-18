@@ -148,5 +148,70 @@ router.post("/student-login", async (req, res) => {
   }
 });
 
+// ================= RESET PASSWORD (STUDENT & ADMIN) =================
+router.post("/reset-password", async (req, res) => {
+  try {
+    const { email, newPassword, role } = req.body;
+
+    if (!email || !newPassword) {
+      return res.status(400).json({
+        message: "Email and new password are required.",
+      });
+    }
+
+    if (newPassword.length < 6) {
+      return res.status(400).json({
+        message: "Password must be at least 6 characters long.",
+      });
+    }
+
+    const normalizedEmail = email.trim().toLowerCase();
+    const envAdminId = (process.env.ADMIN_LOGIN_ID || "admin").toLowerCase();
+
+    // Check if admin reset
+    const isAdmin =
+      role === "admin" ||
+      normalizedEmail === "admin@interntrack.com" ||
+      normalizedEmail === envAdminId ||
+      normalizedEmail === "admin";
+
+    if (isAdmin) {
+      global.ADMIN_PASSWORD_OVERRIDE = newPassword;
+      return res.status(200).json({
+        message: "Admin password reset successfully. You can now log in with your new password.",
+      });
+    }
+
+    // Student password reset
+    let student = await Student.findOne({ email: normalizedEmail });
+
+    if (!student) {
+      // Check if student exists by loginId
+      student = await Student.findOne({
+        loginId: email.trim().toUpperCase(),
+      });
+    }
+
+    if (!student) {
+      return res.status(404).json({
+        message: "No student account found with this email address.",
+      });
+    }
+
+    student.password = await bcrypt.hash(newPassword, 10);
+    await student.save();
+
+    return res.status(200).json({
+      message: "Password reset successfully. You can now log in with your new password.",
+    });
+  } catch (error) {
+    console.error("Reset password error:", error);
+    return res.status(500).json({
+      message: "Password reset failed. Please try again.",
+      error: error.message,
+    });
+  }
+});
+
 export default router;
 

@@ -83,6 +83,22 @@ export function declineStudent(studentId) {
 
 // ---------------- Auth ----------------
 // Error message soho result dey: { ok, student, error }
+export function resetStudentPassword(email, newPassword) {
+  const students = getStudents();
+  const normalized = (email || "").trim().toLowerCase();
+  const idx = students.findIndex(
+    (s) =>
+      (s.email || "").toLowerCase() === normalized ||
+      (s.id || "").toLowerCase() === normalized
+  );
+  if (idx !== -1) {
+    students[idx].password = newPassword;
+    write(K.students, students);
+    return { ok: true, student: students[idx] };
+  }
+  return { ok: false, error: "No student account found with this email." };
+}
+
 export function checkLogin({ id, password, name }) {
   const s = getStudents().find(
     (x) => x.id.toLowerCase() === String(id || "").trim().toLowerCase()

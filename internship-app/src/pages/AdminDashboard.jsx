@@ -1570,11 +1570,15 @@
 // export default AdminDashboard;
 
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import axios from "axios";
+import html2canvas from "html2canvas";
+import { jsPDF } from "jspdf";
 import "./AdminDashboard.css";
 
 import useDbSync from "../utils/useDbSync";
+import { useAuthModal } from "../context/authModalContext";
+import { clearAuthSession } from "../utils/auth";
 
 import {
   getStudents,
@@ -1670,6 +1674,7 @@ const formatHours = (value) => {
 
 function AdminDashboard() {
   useDbSync();
+  const { requestLogout } = useAuthModal();
 
   const [activeTab, setActiveTab] = useState("approvals");
   const [internFilter, setInternFilter] = useState("All Interns");
@@ -1729,6 +1734,368 @@ function AdminDashboard() {
 
   const [mongoCertPending, setMongoCertPending] = useState([]);
   const [mongoCertIssued, setMongoCertIssued] = useState([]);
+
+  const [selectedCert, setSelectedCert] = useState(null);
+  const [previewModalOpen, setPreviewModalOpen] = useState(false);
+  const [downloadingId, setDownloadingId] = useState(null);
+  const certPrintRef = useRef(null);
+
+  // Close preview modal on Escape
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === "Escape") setPreviewModalOpen(false);
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
+  const openPreview = (certificate) => {
+    setSelectedCert(certificate);
+    setPreviewModalOpen(true);
+  };
+
+  const handlePrint = (certificate) => {
+    const certToPrint = certificate || selectedCert;
+    if (!certToPrint) return;
+
+    setSelectedCert(certToPrint);
+
+    setTimeout(() => {
+      const certElement = certPrintRef.current;
+      if (!certElement) {
+        window.print();
+        return;
+      }
+
+      // Create an invisible iframe for completely isolated, reliable printing
+      const iframe = document.createElement("iframe");
+      iframe.style.position = "fixed";
+      iframe.style.right = "0";
+      iframe.style.bottom = "0";
+      iframe.style.width = "0";
+      iframe.style.height = "0";
+      iframe.style.border = "0";
+      iframe.style.visibility = "hidden";
+      document.body.appendChild(iframe);
+
+      const certHtml = certElement.outerHTML;
+
+      iframe.contentWindow.document.open();
+      iframe.contentWindow.document.write(`
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <title>Certificate - ${certToPrint.name || certToPrint.student?.name || "Student"}</title>
+            <style>
+              @page {
+                size: portrait;
+                margin: 10mm;
+              }
+              * {
+                box-sizing: border-box;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+              }
+              body {
+                margin: 0;
+                padding: 0;
+                background: #ffffff;
+                font-family: Arial, sans-serif;
+                color: #1e293b;
+              }
+              .cert-outer {
+                background: #fff;
+                border-top: 6px solid #0284c7;
+                border-radius: 4px;
+                max-width: 780px;
+                margin: 0 auto;
+                font-family: Arial, sans-serif;
+                color: #1e293b;
+                position: relative;
+                overflow: hidden;
+              }
+              .cert-inner {
+                padding: 36px 40px 30px;
+              }
+              .cert-header-top {
+                display: flex;
+                justify-content: space-between;
+                align-items: flex-start;
+                border-bottom: 2px solid #0284c7;
+                padding-bottom: 14px;
+                margin-bottom: 22px;
+              }
+              .cert-company-left {
+                font-size: 11px;
+                line-height: 1.6;
+                color: #334155;
+                text-align: left;
+              }
+              .cert-company-right {
+                text-align: right;
+              }
+              .cert-logo-text {
+                font-size: 22px;
+                font-weight: 800;
+                color: #0284c7;
+                letter-spacing: -0.5px;
+              }
+              .cert-logo-sub {
+                font-size: 8px;
+                color: #64748b;
+                text-transform: uppercase;
+                font-weight: 700;
+                margin-top: 2px;
+              }
+              .cert-date-row {
+                display: flex;
+                justify-content: flex-end;
+                font-size: 13px;
+                font-weight: 700;
+                margin-bottom: 18px;
+                color: #0f172a;
+              }
+              .cert-student-info {
+                font-size: 13.5px;
+                line-height: 1.8;
+                margin-bottom: 22px;
+                color: #0f172a;
+                text-align: left;
+              }
+              .cert-student-info b {
+                color: #020617;
+              }
+              .cert-title-main {
+                text-align: center;
+                font-size: 22px;
+                font-weight: 800;
+                color: #0284c7;
+                letter-spacing: 2px;
+                margin-bottom: 22px;
+                text-transform: uppercase;
+                border-bottom: 2px solid #e0f2fe;
+                padding-bottom: 10px;
+              }
+              .cert-para {
+                font-size: 13px;
+                line-height: 1.8;
+                color: #334155;
+                margin-bottom: 16px;
+                text-align: justify;
+              }
+              .cert-para b {
+                color: #0f172a;
+              }
+              .cert-project-box {
+                background: #f0f9ff;
+                border: 1px solid #bae6fd;
+                border-radius: 8px;
+                padding: 14px 18px;
+                margin: 18px 0;
+                font-size: 12.5px;
+                line-height: 1.6;
+                color: #0369a1;
+                text-align: left;
+              }
+              .cert-project-box b {
+                color: #0c4a6e;
+              }
+              .cert-footer-section {
+                display: flex;
+                justify-content: space-between;
+                align-items: flex-end;
+                margin-top: 32px;
+                padding-bottom: 20px;
+                border-bottom: 1px solid #e2e8f0;
+              }
+              .cert-id-text {
+                font-size: 11px;
+                font-weight: 700;
+                color: #64748b;
+                margin-bottom: 8px;
+                font-family: monospace;
+                text-align: left;
+              }
+              .cert-qr-area {
+                display: flex;
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 4px;
+              }
+              .cert-qr-img {
+                width: 72px;
+                height: 72px;
+                border: 1px solid #cbd5e1;
+                padding: 3px;
+                background: #fff;
+                border-radius: 4px;
+              }
+              .cert-qr-label {
+                font-size: 9px;
+                color: #94a3b8;
+                font-weight: 600;
+              }
+              .cert-sig-area {
+                text-align: right;
+              }
+              .cert-sig-line {
+                font-family: "Brush Script MT", "Caveat", "Segoe Script", cursive;
+                font-size: 26px;
+                color: #1e3a8a;
+                line-height: 1;
+                margin: 4px 0 2px;
+              }
+              .cert-sig-name {
+                font-size: 12px;
+                font-weight: 800;
+                color: #0f172a;
+              }
+              .cert-sig-title {
+                font-size: 10px;
+                color: #64748b;
+              }
+              .cert-company-footer {
+                text-align: center;
+                font-size: 9px;
+                color: #64748b;
+                line-height: 1.6;
+                margin-top: 14px;
+                padding-top: 12px;
+              }
+              .cert-foot-title {
+                font-weight: 700;
+                color: #475569;
+                font-size: 10px;
+                margin-bottom: 2px;
+              }
+              .cert-foot-branches {
+                color: #0284c7;
+                margin-top: 4px;
+                font-weight: 700;
+              }
+            </style>
+          </head>
+          <body>
+            ${certHtml}
+          </body>
+        </html>
+      `);
+      iframe.contentWindow.document.close();
+
+      iframe.contentWindow.focus();
+      setTimeout(() => {
+        iframe.contentWindow.print();
+        setTimeout(() => {
+          if (document.body.contains(iframe)) {
+            document.body.removeChild(iframe);
+          }
+        }, 3000);
+      }, 250);
+    }, 120);
+  };
+
+  const handleDownloadPDF = async (certificate) => {
+    const certId = certificate._id || certificate.id;
+    setDownloadingId(certId);
+    setSelectedCert(certificate);
+
+    await new Promise((resolve) => setTimeout(resolve, 100));
+
+    try {
+      const certElement = certPrintRef.current;
+      if (!certElement) {
+        alert("Certificate template not ready. Please try again.");
+        return;
+      }
+
+      const canvas = await html2canvas(certElement, {
+        scale: 2,
+        backgroundColor: "#ffffff",
+        useCORS: true,
+      });
+      const imgData = canvas.toDataURL("image/png");
+
+      const pdf = new jsPDF({
+        orientation: "portrait",
+        unit: "mm",
+        format: "a4",
+      });
+
+      const pageW = pdf.internal.pageSize.getWidth();
+      const pageH = pdf.internal.pageSize.getHeight();
+      const margin = 10;
+
+      const ratio = Math.min(
+        (pageW - margin * 2) / canvas.width,
+        (pageH - margin * 2) / canvas.height
+      );
+      const w = canvas.width * ratio;
+      const h = canvas.height * ratio;
+
+      pdf.addImage(imgData, "PNG", (pageW - w) / 2, (pageH - h) / 2, w, h);
+      const filename = `Certificate-${certificate.rollNo || certificate.student?.loginId || certificate.certificateNo || "student"}.pdf`;
+      pdf.save(filename);
+    } catch (err) {
+      console.error("PDF generation failed:", err);
+      alert("Failed to generate PDF. Please try again.");
+    } finally {
+      setDownloadingId(null);
+    }
+  };
+
+  const fmtDateOnly = (v) =>
+    v
+      ? new Date(v).toLocaleDateString("en-US", {
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+        })
+      : "1st August 2026";
+
+  const getCertDetails = (c) => {
+    if (!c) return {};
+    const studentName =
+      c.name ||
+      c.student?.name ||
+      (typeof c.student === "string" ? c.student : "Student");
+    const studentRoll =
+      c.rollNo || c.student?.loginId || c.studentId || "—";
+    const course = c.course || "B.Tech";
+    const courseCategory =
+      c.courseCategory ||
+      c.domain ||
+      "Electronics & Communication (ECE)";
+    const college = c.college || c.institution || "MAKAUT (WBUT)";
+    const projectTitle =
+      c.projectTitle ||
+      "Telecom Customer Churn Analysis & Prediction Using Machine Learning";
+    const projectDescription =
+      c.projectDescription ||
+      "Machine learning project predicting telecom customer churn using SMOTE-ENN and models like Random Forest, Gradient Boosting, and XGBoost.";
+    const technologyUsed =
+      c.technologyUsed ||
+      c.technologies ||
+      "Data Science & Artificial Intelligence";
+    const certNo = c.certificateNo || c.id || "CERT-" + Date.now();
+    const approvedDate = fmtDateOnly(c.approvedAt || c.date || new Date());
+    const endorsedBy = c.endorsedBy || adminName || "Alok Halder";
+    const grade = c.grade || "A+";
+
+    return {
+      studentName,
+      studentRoll,
+      course,
+      courseCategory,
+      college,
+      projectTitle,
+      projectDescription,
+      technologyUsed,
+      certNo,
+      approvedDate,
+      endorsedBy,
+      grade,
+    };
+  };
 
   const fetchCerts = useCallback(async () => {
     try {
@@ -2219,19 +2586,14 @@ function AdminDashboard() {
   // ================= LOGOUT =================
 
   function handleLogout() {
-    if (!window.confirm("Are you sure you want to log out?")) return;
-
-    localStorage.removeItem("user");
-    localStorage.removeItem("student");
-    localStorage.removeItem("admin");
-    localStorage.removeItem("studentId");
-    localStorage.removeItem("studentToken");
-    localStorage.removeItem("adminToken");
-    localStorage.removeItem("userRole");
-    localStorage.removeItem("token");
-    localStorage.removeItem("currentUser");
-
-    window.location.href = "/";
+    requestLogout({
+      title: "Confirm Logout",
+      message: "Are you sure you want to log out of the admin console?",
+      onConfirm: () => {
+        clearAuthSession();
+        window.location.href = "/";
+      },
+    });
   }
 
   // ================= SIDEBAR TABS =================
@@ -2668,10 +3030,10 @@ function AdminDashboard() {
                 {mongoCertPending.map((certificate) => (
                   <div className="cert-request" key={certificate._id}>
                     <div className="pending-top">
-                      <h4>{certificate.student?.name || "Student"}</h4>
+                      <h4>{certificate.name || certificate.student?.name || "Student"}</h4>
 
                       <span className="id-chip grey">
-                        {certificate.student?.loginId || "—"}
+                        {certificate.rollNo || certificate.student?.loginId || "—"}
                       </span>
                     </div>
 
@@ -2679,6 +3041,40 @@ function AdminDashboard() {
                       Email:{" "}
                       <strong>{certificate.student?.email || "—"}</strong>
                     </p>
+
+                    {(certificate.course || certificate.courseCategory) && (
+                      <p className="line">
+                        Course:{" "}
+                        <strong>
+                          {certificate.course || "—"}{" "}
+                          {certificate.courseCategory ? `(${certificate.courseCategory})` : ""}
+                        </strong>
+                      </p>
+                    )}
+
+                    {certificate.college && (
+                      <p className="line">
+                        College: <strong>{certificate.college}</strong>
+                      </p>
+                    )}
+
+                    {certificate.projectTitle && (
+                      <p className="line">
+                        Project: <strong>{certificate.projectTitle}</strong>
+                      </p>
+                    )}
+
+                    {certificate.technologyUsed && (
+                      <p className="line">
+                        Technologies: <strong>{certificate.technologyUsed}</strong>
+                      </p>
+                    )}
+
+                    {certificate.projectDescription && (
+                      <p className="line small" style={{ fontStyle: "italic", marginTop: "4px" }}>
+                        &ldquo;{certificate.projectDescription}&rdquo;
+                      </p>
+                    )}
 
                     <p className="line small">
                       Requested: {fmtDateTime(certificate.requestedAt)}
@@ -2811,13 +3207,46 @@ function AdminDashboard() {
                         {certificate.certificateNo || "Certificate"}
                       </span>
 
-                      <span className="endorsed">⊙ Endorsed</span>
+                      <div className="endorsed-col">
+                        <span className="endorsed">⊙ Endorsed</span>
+                        <div className="issued-card-actions">
+                          <button
+                            type="button"
+                            className="btn-cert-mini btn-cert-preview"
+                            onClick={() => openPreview(certificate)}
+                            title="Preview Certificate"
+                          >
+                            👁 Preview
+                          </button>
+                          <button
+                            type="button"
+                            className="btn-cert-mini btn-cert-print"
+                            onClick={() => handlePrint(certificate)}
+                            title="Print Certificate"
+                          >
+                            🖨 Print
+                          </button>
+                          <button
+                            type="button"
+                            className="btn-cert-mini btn-cert-pdf"
+                            onClick={() => handleDownloadPDF(certificate)}
+                            title="Download PDF Certificate"
+                            disabled={downloadingId === (certificate._id || certificate.id)}
+                          >
+                            {downloadingId === (certificate._id || certificate.id)
+                              ? "Generating..."
+                              : "⬇ Download PDF"}
+                          </button>
+                        </div>
+                      </div>
                     </div>
 
-                    <h4>{certificate.student?.name || "Student"}</h4>
+                    <h4>{certificate.name || certificate.student?.name || "Student"}</h4>
 
                     <p className="issued-domain">
-                      {certificate.student?.loginId || "—"}
+                      {certificate.rollNo || certificate.student?.loginId || "—"}
+                      {certificate.course ? ` · ${certificate.course}` : ""}
+                      {certificate.college ? ` · ${certificate.college}` : ""}
                     </p>
 
                     <div className="issued-bottom">
@@ -2835,7 +3264,38 @@ function AdminDashboard() {
                         {certificate.id}
                       </span>
 
-                      <span className="endorsed">⊙ Endorsed</span>
+                      <div className="endorsed-col">
+                        <span className="endorsed">⊙ Endorsed</span>
+                        <div className="issued-card-actions">
+                          <button
+                            type="button"
+                            className="btn-cert-mini btn-cert-preview"
+                            onClick={() => openPreview(certificate)}
+                            title="Preview Certificate"
+                          >
+                            👁 Preview
+                          </button>
+                          <button
+                            type="button"
+                            className="btn-cert-mini btn-cert-print"
+                            onClick={() => handlePrint(certificate)}
+                            title="Print Certificate"
+                          >
+                            🖨 Print
+                          </button>
+                          <button
+                            type="button"
+                            className="btn-cert-mini btn-cert-pdf"
+                            onClick={() => handleDownloadPDF(certificate)}
+                            title="Download PDF Certificate"
+                            disabled={downloadingId === (certificate._id || certificate.id)}
+                          >
+                            {downloadingId === (certificate._id || certificate.id)
+                              ? "Generating..."
+                              : "⬇ Download PDF"}
+                          </button>
+                        </div>
+                      </div>
                     </div>
 
                     <h4>{certificate.student}</h4>
@@ -2997,6 +3457,278 @@ function AdminDashboard() {
           )}
         </main>
       </div>
+
+      {/* =========================================================
+          OFFICIAL CERTIFICATE PREVIEW MODAL & PRINTABLE ELEMENT
+      ========================================================= */}
+      {selectedCert && (() => {
+        const c = getCertDetails(selectedCert);
+        return (
+          <>
+            {/* Modal for interactive viewing on screen */}
+            {previewModalOpen && (
+              <div
+                className="admin-cert-modal-backdrop"
+                onClick={() => setPreviewModalOpen(false)}
+              >
+                <div
+                  className="admin-cert-modal-dialog"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <div className="admin-cert-modal-head">
+                    <div>
+                      <h3>Official Certificate Preview</h3>
+                      <small style={{ color: "#64748b" }}>
+                        {c.studentName} · ID: {c.studentRoll} · Cert #{c.certNo}
+                      </small>
+                    </div>
+                    <div className="admin-cert-modal-actions">
+                      <button
+                        type="button"
+                        className="btn btn-outline"
+                        onClick={() => handlePrint(selectedCert)}
+                        title="Print Certificate"
+                      >
+                        🖨 Print
+                      </button>
+                      <button
+                        type="button"
+                        className="btn btn-orange"
+                        onClick={() => handleDownloadPDF(selectedCert)}
+                        disabled={downloadingId === (selectedCert._id || selectedCert.id)}
+                        title="Download Certificate as PDF"
+                      >
+                        {downloadingId === (selectedCert._id || selectedCert.id)
+                          ? "Generating..."
+                          : "⬇ Download PDF"}
+                      </button>
+                      <button
+                        type="button"
+                        className="admin-modal-close"
+                        onClick={() => setPreviewModalOpen(false)}
+                        title="Close preview"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="admin-cert-modal-body">
+                    <div className="cert-outer">
+                      <div className="cert-inner">
+                        <div className="cert-header-top">
+                          <div className="cert-company-left">
+                            <div>www.pcsgpl.com / www.pcsglobal.in</div>
+                            <div>Email: hr@pcsglobal.in</div>
+                            <div>GST No : 19AAHCP4199F1ZZ</div>
+                          </div>
+                          <div className="cert-company-right">
+                            <div className="cert-logo-text">✔✔ PCS Global</div>
+                            <div className="cert-logo-sub">
+                              WEB DEVELOPMENT . CONSULTING . IT SECURITY
+                            </div>
+                            <div
+                              style={{
+                                fontSize: "8px",
+                                color: "#64748b",
+                                marginTop: "2px",
+                              }}
+                            >
+                              An ISO 9001 : 2008 Certified Company
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="cert-date-row">Date: {c.approvedDate}</div>
+
+                        <div className="cert-student-info">
+                          <div><b>Name:</b> {c.studentName}</div>
+                          <div><b>Id No:</b> {c.studentRoll}</div>
+                          <div><b>Course:</b> {c.course}</div>
+                          <div><b>Course Category:</b> {c.courseCategory}</div>
+                          <div><b>College:</b> {c.college}</div>
+                        </div>
+
+                        <div className="cert-title-main">CERTIFICATE OF INTERNSHIP</div>
+
+                        <div className="cert-para">
+                          This is to certify that <b>{c.studentName}</b>, a student of{" "}
+                          <b>{c.course} ({c.courseCategory})</b> from <b>{c.college}</b>, has
+                          successfully completed his industrial training with project at PCS Global (Perennation Computer Solutions Global Pvt. Ltd.) from 1st June 2026 to {c.approvedDate}.
+                        </div>
+
+                        <div className="cert-para">
+                          During the training period, he underwent rigorous and structured training with a focus on{" "}
+                          <b>{c.projectTitle}</b>, covering multiple concepts, practical implementations, and real-world use cases. He successfully completed all assigned tasks and demonstrated strong technical understanding and problem-solving skills.
+                        </div>
+
+                        <div className="cert-project-box">
+                          <div><b>Project Title:</b> {c.projectTitle}</div>
+                          <div style={{ margin: "6px 0" }}><b>Project Description:</b> {c.projectDescription}</div>
+                          <div><b>Technologies Used:</b> {c.technologyUsed}</div>
+                        </div>
+
+                        <div className="cert-para">
+                          Throughout the training, <b>{c.studentName}</b> was found to be sincere, hardworking, disciplined, and punctual. His conduct and performance during the training period were commendable.
+                        </div>
+
+                        <div className="cert-para">
+                          We wish his every success in future academic and professional endeavors.
+                        </div>
+
+                        <div className="cert-footer-section">
+                          <div>
+                            <div className="cert-id-text">
+                              Certificate ID: {c.certNo}
+                            </div>
+                            <div className="cert-qr-area">
+                              <img
+                                src={`https://api.qrserver.com/v1/create-qr-code/?size=80x80&data=${c.certNo}`}
+                                alt="Scan to Verify"
+                                className="cert-qr-img"
+                              />
+                              <div className="cert-qr-label">Scan to Verify</div>
+                            </div>
+                          </div>
+
+                          <div className="cert-sig-area">
+                            <div style={{ fontSize: "11px", color: "#64748b", marginBottom: "4px" }}>
+                              Yours Sincerely,
+                            </div>
+                            <div style={{ fontSize: "10px", color: "#334155", fontWeight: 700, marginBottom: "20px" }}>
+                              For Perennation Computer Solutions Global Pvt Ltd
+                            </div>
+                            <div className="cert-sig-name">{c.endorsedBy}</div>
+                            <div className="cert-sig-title">Chief Executive Officer (CEO)</div>
+                          </div>
+                        </div>
+
+                        <div className="cert-company-footer">
+                          <div className="cert-foot-title">
+                            Perennation Computer Solutions GLobal Private Limited
+                          </div>
+                          <div className="cert-foot-addr">
+                            <b>Registered Office :</b> 145E, Swinhoe Lane, Kolkata - 700042 &nbsp;|&nbsp; <b>Head Office :</b> 55/65, Chikku Lakshmaiah Road, Adugodi, Bengaluru, Karnataka - 560029
+                          </div>
+                          <div className="cert-foot-branches">
+                            * Kolkata &nbsp;&nbsp; * Noida &nbsp;&nbsp; * Pune/Mumbai &nbsp;&nbsp; * Indore &nbsp;&nbsp; * Guwahati
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Always-mounted target for html2canvas and window.print() */}
+            <div className="admin-cert-offscreen-wrap cert-printable-area">
+              <div className="cert-outer" ref={certPrintRef}>
+                <div className="cert-inner">
+                  <div className="cert-header-top">
+                    <div className="cert-company-left">
+                      <div>www.pcsgpl.com / www.pcsglobal.in</div>
+                      <div>Email: hr@pcsglobal.in</div>
+                      <div>GST No : 19AAHCP4199F1ZZ</div>
+                    </div>
+                    <div className="cert-company-right">
+                      <div className="cert-logo-text">✔✔ PCS Global</div>
+                      <div className="cert-logo-sub">
+                        WEB DEVELOPMENT . CONSULTING . IT SECURITY
+                      </div>
+                      <div
+                        style={{
+                          fontSize: "8px",
+                          color: "#64748b",
+                          marginTop: "2px",
+                        }}
+                      >
+                        An ISO 9001 : 2008 Certified Company
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="cert-date-row">Date: {c.approvedDate}</div>
+
+                  <div className="cert-student-info">
+                    <div><b>Name:</b> {c.studentName}</div>
+                    <div><b>Id No:</b> {c.studentRoll}</div>
+                    <div><b>Course:</b> {c.course}</div>
+                    <div><b>Course Category:</b> {c.courseCategory}</div>
+                    <div><b>College:</b> {c.college}</div>
+                  </div>
+
+                  <div className="cert-title-main">CERTIFICATE OF INTERNSHIP</div>
+
+                  <div className="cert-para">
+                    This is to certify that <b>{c.studentName}</b>, a student of{" "}
+                    <b>{c.course} ({c.courseCategory})</b> from <b>{c.college}</b>, has
+                    successfully completed his industrial training with project at PCS Global (Perennation Computer Solutions Global Pvt. Ltd.) from 1st June 2026 to {c.approvedDate}.
+                  </div>
+
+                  <div className="cert-para">
+                    During the training period, he underwent rigorous and structured training with a focus on{" "}
+                    <b>{c.projectTitle}</b>, covering multiple concepts, practical implementations, and real-world use cases. He successfully completed all assigned tasks and demonstrated strong technical understanding and problem-solving skills.
+                  </div>
+
+                  <div className="cert-project-box">
+                    <div><b>Project Title:</b> {c.projectTitle}</div>
+                    <div style={{ margin: "6px 0" }}><b>Project Description:</b> {c.projectDescription}</div>
+                    <div><b>Technologies Used:</b> {c.technologyUsed}</div>
+                  </div>
+
+                  <div className="cert-para">
+                    Throughout the training, <b>{c.studentName}</b> was found to be sincere, hardworking, disciplined, and punctual. His conduct and performance during the training period were commendable.
+                  </div>
+
+                  <div className="cert-para">
+                    We wish his every success in future academic and professional endeavors.
+                  </div>
+
+                  <div className="cert-footer-section">
+                    <div>
+                      <div className="cert-id-text">
+                        Certificate ID: {c.certNo}
+                      </div>
+                      <div className="cert-qr-area">
+                        <img
+                          src={`https://api.qrserver.com/v1/create-qr-code/?size=80x80&data=${c.certNo}`}
+                          alt="Scan to Verify"
+                          className="cert-qr-img"
+                        />
+                        <div className="cert-qr-label">Scan to Verify</div>
+                      </div>
+                    </div>
+
+                    <div className="cert-sig-area">
+                      <div style={{ fontSize: "11px", color: "#64748b", marginBottom: "4px" }}>
+                        Yours Sincerely,
+                      </div>
+                      <div style={{ fontSize: "10px", color: "#334155", fontWeight: 700, marginBottom: "20px" }}>
+                        For Perennation Computer Solutions Global Pvt Ltd
+                      </div>
+                      <div className="cert-sig-name">{c.endorsedBy}</div>
+                      <div className="cert-sig-title">Chief Executive Officer (CEO)</div>
+                    </div>
+                  </div>
+
+                  <div className="cert-company-footer">
+                    <div className="cert-foot-title">
+                      Perennation Computer Solutions GLobal Private Limited
+                    </div>
+                    <div className="cert-foot-addr">
+                      <b>Registered Office :</b> 145E, Swinhoe Lane, Kolkata - 700042 &nbsp;|&nbsp; <b>Head Office :</b> 55/65, Chikku Lakshmaiah Road, Adugodi, Bengaluru, Karnataka - 560029
+                    </div>
+                    <div className="cert-foot-branches">
+                      * Kolkata &nbsp;&nbsp; * Noida &nbsp;&nbsp; * Pune/Mumbai &nbsp;&nbsp; * Indore &nbsp;&nbsp; * Guwahati
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </>
+        );
+      })()}
     </div>
   );
 }

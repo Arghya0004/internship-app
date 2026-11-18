@@ -1,3 +1,6 @@
+import GlowCursor from "../components/GlowCursor";
+import TiltedCard from "../components/TiltedCard";
+import BorderGlow from "../components/BorderGlow";
 import "./Home.css";
 
 const steps = [
@@ -22,55 +25,83 @@ const tracks = [
 
 export default function Home() {
   return (
-    <div className="home">
+    <GlowCursor theme="light">
+      <div className="home">
 
-      {/* ===== HERO ===== */}
-      <section className="hero">
-        <span className="badge">MERN Stack Architecture · MongoDB Document Store & Express REST API</span>
+        {/* ===== HERO ===== */}
+        <section className="hero">
+          <span className="badge">MERN Stack Architecture · MongoDB Document Store & Express REST API</span>
 
-        <h1>
-          Track Daily Internship Hours.<br />
-          <span className="blue">Generate Verifiable Credentials.</span>
-        </h1>
+          <h1>
+            Track Daily Internship Hours.<br />
+            <span className="blue">Generate Verifiable Credentials.</span>
+          </h1>
 
-        <p className="hero-sub">
-          The premier platform for university interns and program administrators.
-          Automated shift calculation, manual task logs, administrative approval
-          pipelines, and cryptographic digital certificates.
-        </p>
-      </section>
+          <p className="hero-sub">
+            The premier platform for university interns and program administrators.
+            Automated shift calculation, manual task logs, administrative approval
+            pipelines, and cryptographic digital certificates.
+          </p>
+        </section>
 
-      {/* ===== WORKFLOW ===== */}
-      <section className="section">
-        <p className="eyebrow">SYSTEM WORKFLOW</p>
-        <h2>Engineered Exactly for Your Requirements</h2>
+        {/* ===== WORKFLOW ===== */}
+        <section className="section">
+          <p className="eyebrow">SYSTEM WORKFLOW</p>
+          <h2>Engineered Exactly for Your Requirements</h2>
 
-        <div className="grid grid-4">
-          {steps.map((s) => (
-            <div className="card" key={s.n}>
-              <span className="num" style={{ background: s.bg, color: s.color }}>{s.n}</span>
-              <h4>{s.title}</h4>
-              <p>{s.desc}</p>
-            </div>
-          ))}
-        </div>
-      </section>
+          <div className="grid grid-4">
+            {steps.map((s) => (
+              <TiltedCard
+                key={s.n}
+                className="workflow-tilted-card"
+                containerWidth="100%"
+                containerHeight="205px"
+                imageWidth="100%"
+                imageHeight="100%"
+                scaleOnHover={1.05}
+                rotateAmplitude={12}
+                radius={10}
+                showTooltip={false}
+                glare={0.4}
+                glareColor="#ffffff"
+                shadow={0.3}
+              >
+                <BorderGlow
+                  backgroundColor="#ffffff"
+                  borderRadius={10}
+                  glowColor="221 83 60"
+                  colors={['#3b82f6', '#60a5fa', '#93c5fd']}
+                  edgeSensitivity={25}
+                  glowRadius={30}
+                  className="workflow-border-glow"
+                >
+                  <div className="card-workflow">
+                    <span className="num" style={{ background: s.bg, color: s.color }}>{s.n}</span>
+                    <h4>{s.title}</h4>
+                    <p>{s.desc}</p>
+                  </div>
+                </BorderGlow>
+              </TiltedCard>
+            ))}
+          </div>
+        </section>
 
-      {/* ===== TRACKS ===== */}
-      <section className="section">
-        <h2>Supported Internship Tracks</h2>
-        <p className="muted">Standardized technical curriculum templates with automated practicum verification.</p>
+        {/* ===== TRACKS ===== */}
+        <section className="section">
+          <h2>Supported Internship Tracks</h2>
+          <p className="muted">Standardized technical curriculum templates with automated practicum verification.</p>
 
-        <div className="grid grid-3">
-          {tracks.title ? null : tracks.map((t) => (
-            <div className="card" key={t.title}>
-              <h4>{t.title}</h4>
-              <p>{t.desc}</p>
-            </div>
-          ))}
-        </div>
-      </section>
+          <div className="grid grid-3">
+            {tracks.title ? null : tracks.map((t) => (
+              <div className="card" key={t.title}>
+                <h4>{t.title}</h4>
+                <p>{t.desc}</p>
+              </div>
+            ))}
+          </div>
+        </section>
 
-    </div>
+      </div>
+    </GlowCursor>
   );
 }

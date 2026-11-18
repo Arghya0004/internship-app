@@ -18,6 +18,16 @@ const certificateSchema = new mongoose.Schema(
     certificateNo: String,
     requestedAt: { type: Date, default: Date.now },
     approvedAt: Date,
+
+    // Student submitted details for certificate
+    name: String,
+    rollNo: String,
+    course: String,
+    courseCategory: String,
+    college: String,
+    projectTitle: String,
+    projectDescription: String,
+    technologyUsed: String,
   },
   { timestamps: true }
 );

@@ -106,12 +106,13 @@
 .am-body label:first-child { margin-top: 0; }
 
 .am-input { position: relative; }
-.am-input svg {
+.am-input > svg {
   position: absolute;
   left: 14px;
   top: 50%;
   transform: translateY(-50%);
   color: #94a3b8;
+  pointer-events: none;
 }
 .am-input input {
   width: 100%;
@@ -125,14 +126,112 @@
   outline: none;
   transition: 0.2s;
 }
+.am-input input.has-toggle {
+  padding-right: 44px;
+}
 .am-input input.mono { font-family: "Courier New", monospace; }
 .am-input input:focus { border-color: #1d4ed8; background: #fff; }
+
+/* PASSWORD TOGGLE BUTTON */
+.am-password-toggle {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  padding: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #94a3b8;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  z-index: 2;
+}
+.am-password-toggle:hover {
+  color: #1d4ed8;
+  background: #eff6ff;
+}
+.am-password-toggle svg {
+  position: static !important;
+  left: auto !important;
+  top: auto !important;
+  transform: none !important;
+  color: inherit !important;
+}
 
 .am-hint {
   display: block;
   font-size: 11px;
   color: #64748b;
   margin-top: 6px;
+}
+
+/* FORGOT PASSWORD ROW & LINK */
+.am-forgot-row {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 8px;
+}
+
+.am-forgot-link {
+  background: none;
+  border: none;
+  padding: 2px 0;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  color: #2563eb;
+  cursor: pointer;
+  transition: color 0.15s ease, text-decoration 0.15s ease;
+}
+
+.am-forgot-link:hover {
+  color: #1d4ed8;
+  text-decoration: underline;
+}
+
+/* FORGOT PASSWORD VIEW HEADER */
+.am-forgot-top {
+  margin-bottom: 18px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.am-back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: none;
+  padding: 0;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  color: #64748b;
+  cursor: pointer;
+  margin-bottom: 10px;
+  transition: color 0.15s ease;
+}
+
+.am-back-link:hover {
+  color: #1d4ed8;
+}
+
+.am-forgot-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0 0 4px;
+}
+
+.am-forgot-desc {
+  font-size: 13px;
+  color: #64748b;
+  margin: 0;
+  line-height: 1.45;
 }
 
 .am-error {

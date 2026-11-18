@@ -30,8 +30,18 @@ const attendanceSchema = new mongoose.Schema(
 
     dailyWork: {
       type: String,
-      required: true,
+      default: "",
       trim: true,
+    },
+
+    isLogConfirmed: {
+      type: Boolean,
+      default: false,
+    },
+
+    technologies: {
+      type: [String],
+      default: [],
     },
 
     status: {
