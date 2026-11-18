@@ -1,3 +1,4 @@
+import GlowCursor from "../components/GlowCursor";
 import "./Home.css";
 
 const steps = [
@@ -22,55 +23,57 @@ const tracks = [
 
 export default function Home() {
   return (
-    <div className="home">
+    <GlowCursor theme="light">
+      <div className="home">
 
-      {/* ===== HERO ===== */}
-      <section className="hero">
-        <span className="badge">MERN Stack Architecture · MongoDB Document Store & Express REST API</span>
+        {/* ===== HERO ===== */}
+        <section className="hero">
+          <span className="badge">MERN Stack Architecture · MongoDB Document Store & Express REST API</span>
 
-        <h1>
-          Track Daily Internship Hours.<br />
-          <span className="blue">Generate Verifiable Credentials.</span>
-        </h1>
+          <h1>
+            Track Daily Internship Hours.<br />
+            <span className="blue">Generate Verifiable Credentials.</span>
+          </h1>
 
-        <p className="hero-sub">
-          The premier platform for university interns and program administrators.
-          Automated shift calculation, manual task logs, administrative approval
-          pipelines, and cryptographic digital certificates.
-        </p>
-      </section>
+          <p className="hero-sub">
+            The premier platform for university interns and program administrators.
+            Automated shift calculation, manual task logs, administrative approval
+            pipelines, and cryptographic digital certificates.
+          </p>
+        </section>
 
-      {/* ===== WORKFLOW ===== */}
-      <section className="section">
-        <p className="eyebrow">SYSTEM WORKFLOW</p>
-        <h2>Engineered Exactly for Your Requirements</h2>
+        {/* ===== WORKFLOW ===== */}
+        <section className="section">
+          <p className="eyebrow">SYSTEM WORKFLOW</p>
+          <h2>Engineered Exactly for Your Requirements</h2>
 
-        <div className="grid grid-4">
-          {steps.map((s) => (
-            <div className="card" key={s.n}>
-              <span className="num" style={{ background: s.bg, color: s.color }}>{s.n}</span>
-              <h4>{s.title}</h4>
-              <p>{s.desc}</p>
-            </div>
-          ))}
-        </div>
-      </section>
+          <div className="grid grid-4">
+            {steps.map((s) => (
+              <div className="card" key={s.n}>
+                <span className="num" style={{ background: s.bg, color: s.color }}>{s.n}</span>
+                <h4>{s.title}</h4>
+                <p>{s.desc}</p>
+              </div>
+            ))}
+          </div>
+        </section>
 
-      {/* ===== TRACKS ===== */}
-      <section className="section">
-        <h2>Supported Internship Tracks</h2>
-        <p className="muted">Standardized technical curriculum templates with automated practicum verification.</p>
+        {/* ===== TRACKS ===== */}
+        <section className="section">
+          <h2>Supported Internship Tracks</h2>
+          <p className="muted">Standardized technical curriculum templates with automated practicum verification.</p>
 
-        <div className="grid grid-3">
-          {tracks.title ? null : tracks.map((t) => (
-            <div className="card" key={t.title}>
-              <h4>{t.title}</h4>
-              <p>{t.desc}</p>
-            </div>
-          ))}
-        </div>
-      </section>
+          <div className="grid grid-3">
+            {tracks.title ? null : tracks.map((t) => (
+              <div className="card" key={t.title}>
+                <h4>{t.title}</h4>
+                <p>{t.desc}</p>
+              </div>
+            ))}
+          </div>
+        </section>
 
-    </div>
+      </div>
+    </GlowCursor>
   );
 }
