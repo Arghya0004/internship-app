@@ -491,6 +491,68 @@ export default function CertificateGenerator({ embedded = false }) {
     }
   }
 
+  function handlePrint() {
+    if (!certRef.current) {
+      window.print();
+      return;
+    }
+
+    const iframe = document.createElement("iframe");
+    iframe.style.position = "fixed";
+    iframe.style.right = "0";
+    iframe.style.bottom = "0";
+    iframe.style.width = "0";
+    iframe.style.height = "0";
+    iframe.style.border = "0";
+    iframe.style.visibility = "hidden";
+    document.body.appendChild(iframe);
+
+    const certHtml = certRef.current.outerHTML;
+
+    iframe.contentWindow.document.open();
+    iframe.contentWindow.document.write(`
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Certificate - ${studentName}</title>
+          <style>
+            @page {
+              size: portrait;
+              margin: 10mm;
+            }
+            * {
+              box-sizing: border-box;
+              -webkit-print-color-adjust: exact !important;
+              print-color-adjust: exact !important;
+            }
+            body {
+              margin: 0;
+              padding: 0;
+              background: #ffffff;
+              font-family: Arial, sans-serif;
+              color: #1e293b;
+            }
+            ${css}
+          </style>
+        </head>
+        <body>
+          ${certHtml}
+        </body>
+      </html>
+    `);
+    iframe.contentWindow.document.close();
+
+    iframe.contentWindow.focus();
+    setTimeout(() => {
+      iframe.contentWindow.print();
+      setTimeout(() => {
+        if (document.body.contains(iframe)) {
+          document.body.removeChild(iframe);
+        }
+      }, 3000);
+    }, 200);
+  }
+
   const cert = data?.certificate;
   const status = cert?.status;
 
@@ -661,7 +723,7 @@ export default function CertificateGenerator({ embedded = false }) {
                 style={{ marginTop: 16 }}
                 onClick={() => setShowModal(true)}
               >
-                fill details to request certificate
+                Fill Details to Request Certificate
               </button>
             </div>
           )}
@@ -916,7 +978,7 @@ export default function CertificateGenerator({ embedded = false }) {
                     >
                       Copy Cert ID
                     </button>
-                    <button className="cg-btn green" onClick={() => window.print()}>
+                    <button className="cg-btn green" onClick={handlePrint}>
                       🖨 Print
                     </button>
                     <button
