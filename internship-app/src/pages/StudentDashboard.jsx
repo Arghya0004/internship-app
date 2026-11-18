@@ -4,6 +4,7 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { useAuthModal } from "../context/authModalContext";
 import { clearAuthSession } from "../utils/auth";
+import CertificateGenerator from "./CertificateGenerator";
 
 import {
   Clock,
@@ -16,6 +17,9 @@ import {
   FileText,
   CheckCircle,
   LogOut,
+  Menu,
+  X,
+  LayoutDashboard,
 } from "lucide-react";
 
 import "./StudentDashboard.css";
@@ -63,6 +67,9 @@ function StudentDashboard() {
     },
   };
 
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState("dashboard"); // "dashboard" | "certificate"
+
   const [work, setWork] = useState("");
   const [selectedTech, setSelectedTech] = useState(["React"]);
 
@@ -74,6 +81,15 @@ function StudentDashboard() {
   const [message, setMessage] = useState("");
 
   const today = new Date().toLocaleDateString("en-CA");
+
+  // Close sidebar on Escape key
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === "Escape") setSidebarOpen(false);
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
 
   // =====================================
   // LOAD ATTENDANCE HISTORY
@@ -252,6 +268,141 @@ function StudentDashboard() {
     <div className="modern-dashboard">
 
       {/* =====================================
+          TOP BAR (HAMBURGER & LOGOUT)
+      ===================================== */}
+      <div className="student-top-nav">
+        <div className="student-top-nav-left">
+          <button
+            type="button"
+            className="student-hamburger-btn"
+            onClick={() => setSidebarOpen(true)}
+            aria-label="Open navigation sidebar"
+            title="Open navigation menu"
+          >
+            <Menu size={22} />
+          </button>
+
+          <div className="student-portal-brand">
+            <span className="student-brand-icon">
+              <Award size={18} />
+            </span>
+            <span className="student-brand-name">
+              Intern<span className="brand-blue">Track</span>
+            </span>
+            <span className="student-portal-tag">Student Portal</span>
+          </div>
+        </div>
+
+        <div className="student-top-nav-right">
+          <button
+            type="button"
+            className="student-logout-btn"
+            onClick={handleLogout}
+            title="Logout"
+          >
+            <LogOut size={16} />
+            <span>Logout</span>
+          </button>
+        </div>
+      </div>
+
+      {/* =====================================
+          SIDEBAR DRAWER OVERLAY
+      ===================================== */}
+      {sidebarOpen && (
+        <div
+          className="student-sidebar-overlay"
+          onClick={() => setSidebarOpen(false)}
+        >
+          <aside
+            className="student-sidebar"
+            onClick={(e) => e.stopPropagation()}
+            aria-label="Student Navigation Drawer"
+          >
+            <div className="student-sidebar-head">
+              <div className="student-sidebar-brand">
+                <span className="sidebar-brand-icon">
+                  <Award size={20} />
+                </span>
+                <div>
+                  <h3>Intern<span className="brand-blue">Track</span></h3>
+                  <small>Student Portal</small>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                className="student-sidebar-close"
+                onClick={() => setSidebarOpen(false)}
+                title="Close sidebar"
+                aria-label="Close sidebar"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* Profile Mini Card in Sidebar */}
+            <div className="student-sidebar-profile">
+              <div className="sidebar-profile-avatar">
+                <GraduationCap size={22} />
+              </div>
+              <div className="sidebar-profile-meta">
+                <strong title={student.name}>{student.name}</strong>
+                <span className="sidebar-student-id">{student.loginId}</span>
+                <span className="sidebar-student-email" title={student.email}>
+                  {student.email}
+                </span>
+              </div>
+            </div>
+
+            {/* Navigation Menu Items */}
+            <nav className="student-sidebar-menu">
+              <p className="sidebar-section-heading">WORKSPACE</p>
+
+              <button
+                type="button"
+                className={`sidebar-nav-btn ${activeTab === "dashboard" ? "active" : ""}`}
+                onClick={() => {
+                  setActiveTab("dashboard");
+                  setSidebarOpen(false);
+                }}
+              >
+                <LayoutDashboard size={18} />
+                <span>Dashboard</span>
+              </button>
+
+              <button
+                type="button"
+                className={`sidebar-nav-btn ${activeTab === "certificate" ? "active" : ""}`}
+                onClick={() => {
+                  setActiveTab("certificate");
+                  setSidebarOpen(false);
+                }}
+              >
+                <Award size={18} />
+                <span>Certificate Generator</span>
+              </button>
+            </nav>
+
+            {/* Red Logout Button in Sidebar */}
+            <div className="student-sidebar-footer">
+              <button
+                type="button"
+                className="sidebar-logout-btn"
+                onClick={() => {
+                  setSidebarOpen(false);
+                  handleLogout();
+                }}
+              >
+                <LogOut size={16} />
+                <span>Logout</span>
+              </button>
+            </div>
+          </aside>
+        </div>
+      )}
+
+      {/* =====================================
           PROFILE HEADER
       ===================================== */}
 
@@ -303,99 +454,87 @@ function StudentDashboard() {
 
         </div>
 
-        <div
-          style={{
-            display: "flex",
-            gap: "10px",
-            flexWrap: "wrap",
-          }}
-        >
-
-          <button
-            className="certificate-btn"
-            onClick={() => navigate("/certificate")}
-          >
-            <Award size={17} />
-            Go to Certificate Generator
-          </button>
-
-          <button
-            className="certificate-btn"
-            onClick={handleLogout}
-          >
-            <LogOut size={17} />
-            Logout
-          </button>
-
-        </div>
-
       </section>
-
 
       {/* =====================================
-          STATISTICS
+          VIEW SWITCHER: DASHBOARD VS CERTIFICATE
       ===================================== */}
 
-      <section className="stats-grid">
+      {activeTab === "certificate" ? (
+        <section className="student-certificate-view">
+          <CertificateGenerator embedded={true} />
+        </section>
+      ) : (
+        <>
+          {/* =====================================
+              STATISTICS
+          ===================================== */}
 
-        <div className="stat-card">
+          <section className="stats-grid">
 
-          <CalendarDays />
+            <div className="stat-card">
 
-          <small>TOTAL LOGGED</small>
+              <CalendarDays />
 
-          <h2>
-            {totalHours.toFixed(2)}
-            <small> hrs</small>
-          </h2>
+              <small>TOTAL LOGGED</small>
 
-          <p>Automated calculation</p>
+              <h2>
+                {totalHours.toFixed(2)}
+                <small> hrs</small>
+              </h2>
 
-        </div>
+              <p>Automated calculation</p>
 
-        <div className="stat-card">
+            </div>
 
-          <CheckCircle />
+            <div className="stat-card">
 
-          <small>DAYS ACTIVE</small>
+              <CheckCircle />
 
-          <h2>
-            {activeDays}
-            <small> days</small>
-          </h2>
+              <small>DAYS ACTIVE</small>
 
-          <p>Attendance records</p>
+              <h2>
+                {activeDays}
+                <small> days</small>
+              </h2>
 
-        </div>
+              <p>Attendance records</p>
 
-        <div className="stat-card">
+            </div>
 
-          <Clock />
+            <div className="stat-card">
 
-          <small>DAILY AVERAGE</small>
+              <Clock />
 
-          <h2>
-            {average}
-            <small> hrs/day</small>
-          </h2>
+              <small>DAILY AVERAGE</small>
 
-          <p>Productive shift pace</p>
+              <h2>
+                {average}
+                <small> hrs/day</small>
+              </h2>
 
-        </div>
+              <p>Productive shift pace</p>
 
-        <div className="stat-card">
+            </div>
 
-          <Award />
+            <div
+              className="stat-card stat-card--clickable"
+              onClick={() => setActiveTab("certificate")}
+              title="Click to open Certificate Generator"
+              style={{ cursor: "pointer" }}
+            >
 
-          <small>CERTIFICATE STATUS</small>
+              <Award />
 
-          <h3>Ready to Request</h3>
+              <small>CERTIFICATE STATUS</small>
 
-          <p>ID: {student.loginId}</p>
+              <h3>Ready to Request</h3>
 
-        </div>
+              <p>ID: {student.loginId} · Open Generator →</p>
 
-      </section>
+            </div>
+
+          </section>
 
 
       {/* =====================================
@@ -655,6 +794,8 @@ function StudentDashboard() {
         </div>
 
       </section>
+      </>
+      )}
 
     </div>
   );

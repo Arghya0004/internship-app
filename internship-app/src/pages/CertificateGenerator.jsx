@@ -38,6 +38,10 @@ const css = `
 .cg-banner{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;background:#ecfdf5;border:1px solid #6ee7b7;border-radius:14px;padding:14px 18px;margin-bottom:20px}
 .cg-banner b{display:block;font-size:14px}
 .cg-banner small{color:#047857;font-size:12px}
+.cg-embedded{max-width:100%;padding:10px 0 40px}
+.cg-embedded-header{margin-bottom:24px}
+.cg-embedded-header h2{font-size:24px;font-weight:800;color:#111827;margin:10px 0 6px}
+.cg-embedded-header p{color:#64748b;font-size:14px;margin:0}
 
 /* PCS Global Certificate Template CSS */
 .cert-outer {
@@ -221,7 +225,7 @@ const fmtDate = (v) =>
       })
     : "—";
 
-export default function CertificateGenerator() {
+export default function CertificateGenerator({ embedded = false }) {
   const [token, setToken] = useState("");
   const [data, setData] = useState(null);
   const [checking, setChecking] = useState(true);
@@ -330,18 +334,28 @@ export default function CertificateGenerator() {
   const studentCollege = data?.college || data?.institution || "MAKAUT (WBUT)";
 
   return (
-    <div className="cg-wrap">
+    <div className={`cg-wrap ${embedded ? "cg-embedded" : ""}`}>
       <style>{css}</style>
 
-      <div className="cg-center">
-        <span className="cg-badge">🏅 Official Endorsement Portal</span>
-        <h1 className="cg-title">Internship Certificate Generator &amp; Verifier</h1>
-        <p className="cg-sub">
-          Authenticate with your Student ID and Password to request an official
-          certificate, track administrative endorsement, and view your
-          verifiable credential.
-        </p>
-      </div>
+      {!embedded ? (
+        <div className="cg-center">
+          <span className="cg-badge">🏅 Official Endorsement Portal</span>
+          <h1 className="cg-title">Internship Certificate Generator &amp; Verifier</h1>
+          <p className="cg-sub">
+            Authenticate with your Student ID and Password to request an official
+            certificate, track administrative endorsement, and view your
+            verifiable credential.
+          </p>
+        </div>
+      ) : (
+        <div className="cg-embedded-header">
+          <span className="cg-badge">🏅 Official Endorsement Portal</span>
+          <h2>Internship Certificate &amp; Verification</h2>
+          <p>
+            Request official certificate endorsement, track administrative approval, and view or download your verifiable credential.
+          </p>
+        </div>
+      )}
 
       {checking && (
         <div className="cg-card cg-narrow cg-center">Loading...</div>
