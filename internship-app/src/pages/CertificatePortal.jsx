@@ -378,7 +378,6 @@ export default function CertificatePortal() {
 
                     <div className="cert-sign">
                       <div>
-                        <div className="sg">{cert.endorsedBy}</div>
                         <b style={{ fontSize: 12 }}>{cert.endorsedBy}</b>
                         <small>Endorsing Authority</small>
                       </div>
@@ -389,7 +388,6 @@ export default function CertificatePortal() {
                       </div>
 
                       <div>
-                        <div className="sg">InternTrack</div>
                         <b style={{ fontSize: 12 }}>Program Director</b>
                         <small>Academic Verification Council</small>
                       </div>

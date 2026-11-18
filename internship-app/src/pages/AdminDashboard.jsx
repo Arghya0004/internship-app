@@ -3595,10 +3595,9 @@ function AdminDashboard() {
                             <div style={{ fontSize: "11px", color: "#64748b", marginBottom: "4px" }}>
                               Yours Sincerely,
                             </div>
-                            <div style={{ fontSize: "10px", color: "#334155", fontWeight: 700, marginBottom: "8px" }}>
+                            <div style={{ fontSize: "10px", color: "#334155", fontWeight: 700, marginBottom: "20px" }}>
                               For Perennation Computer Solutions Global Pvt Ltd
                             </div>
-                            <div className="cert-sig-line">Alalder</div>
                             <div className="cert-sig-name">{c.endorsedBy}</div>
                             <div className="cert-sig-title">Chief Executive Officer (CEO)</div>
                           </div>
@@ -3705,10 +3704,9 @@ function AdminDashboard() {
                       <div style={{ fontSize: "11px", color: "#64748b", marginBottom: "4px" }}>
                         Yours Sincerely,
                       </div>
-                      <div style={{ fontSize: "10px", color: "#334155", fontWeight: 700, marginBottom: "8px" }}>
+                      <div style={{ fontSize: "10px", color: "#334155", fontWeight: 700, marginBottom: "20px" }}>
                         For Perennation Computer Solutions Global Pvt Ltd
                       </div>
-                      <div className="cert-sig-line">Alalder</div>
                       <div className="cert-sig-name">{c.endorsedBy}</div>
                       <div className="cert-sig-title">Chief Executive Officer (CEO)</div>
                     </div>
