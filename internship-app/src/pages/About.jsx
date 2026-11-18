@@ -1,5 +1,4 @@
-import { Link } from "react-router-dom";
-import { Clock, ShieldCheck, Award, ArrowRight } from "lucide-react";
+import { Clock, ShieldCheck, Award } from "lucide-react";
 import "./About.css";
 
 const features = [
@@ -96,9 +95,6 @@ export default function About() {
               Adhering to IEEE and ABET university practicum guidelines for
               experiential engineering education.
             </small>
-            <Link to="/certificate" className="about-btn">
-              Test Certificate Generator <ArrowRight size={14} />
-            </Link>
           </div>
         </div>
       </section>
