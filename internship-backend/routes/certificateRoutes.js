@@ -41,12 +41,38 @@ router.post("/request", protect, async (req, res) => {
     if (cert && cert.status !== "rejected")
       return res.status(400).json({ message: "Request already submitted." });
 
+    const {
+      name,
+      rollNo,
+      course,
+      courseCategory,
+      college,
+      projectTitle,
+      projectDescription,
+      technologyUsed,
+    } = req.body;
+
+    const certPayload = {
+      name: name?.trim() || student.name,
+      rollNo: rollNo?.trim() || student.loginId,
+      course: course?.trim() || "B.Tech",
+      courseCategory: courseCategory?.trim() || "Computer Science & Engineering",
+      college: college?.trim() || "",
+      projectTitle: projectTitle?.trim() || "",
+      projectDescription: projectDescription?.trim() || "",
+      technologyUsed: technologyUsed?.trim() || "",
+      status: "pending",
+      requestedAt: new Date(),
+    };
+
     if (cert) {
-      cert.status = "pending";
-      cert.requestedAt = new Date();
+      Object.assign(cert, certPayload);
       await cert.save();
     } else {
-      cert = await Certificate.create({ student: student._id });
+      cert = await Certificate.create({
+        student: student._id,
+        ...certPayload,
+      });
     }
 
     res.json(cert);
@@ -68,12 +94,18 @@ router.get("/verify/:certNo", async (req, res) => {
       return res.status(404).json({ message: "Certificate not found." });
 
     res.json({
-      name: cert.student.name,
-      loginId: cert.student.loginId,
+      name: cert.name || cert.student?.name,
+      loginId: cert.rollNo || cert.student?.loginId,
       grade: cert.grade,
       endorsedBy: cert.endorsedBy,
       certificateNo: cert.certificateNo,
       approvedAt: cert.approvedAt,
+      course: cert.course,
+      courseCategory: cert.courseCategory,
+      college: cert.college,
+      projectTitle: cert.projectTitle,
+      projectDescription: cert.projectDescription,
+      technologyUsed: cert.technologyUsed,
     });
   } catch (e) {
     res.status(500).json({ message: e.message });

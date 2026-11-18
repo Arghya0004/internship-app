@@ -2666,10 +2666,10 @@ function AdminDashboard() {
                 {mongoCertPending.map((certificate) => (
                   <div className="cert-request" key={certificate._id}>
                     <div className="pending-top">
-                      <h4>{certificate.student?.name || "Student"}</h4>
+                      <h4>{certificate.name || certificate.student?.name || "Student"}</h4>
 
                       <span className="id-chip grey">
-                        {certificate.student?.loginId || "—"}
+                        {certificate.rollNo || certificate.student?.loginId || "—"}
                       </span>
                     </div>
 
@@ -2677,6 +2677,40 @@ function AdminDashboard() {
                       Email:{" "}
                       <strong>{certificate.student?.email || "—"}</strong>
                     </p>
+
+                    {(certificate.course || certificate.courseCategory) && (
+                      <p className="line">
+                        Course:{" "}
+                        <strong>
+                          {certificate.course || "—"}{" "}
+                          {certificate.courseCategory ? `(${certificate.courseCategory})` : ""}
+                        </strong>
+                      </p>
+                    )}
+
+                    {certificate.college && (
+                      <p className="line">
+                        College: <strong>{certificate.college}</strong>
+                      </p>
+                    )}
+
+                    {certificate.projectTitle && (
+                      <p className="line">
+                        Project: <strong>{certificate.projectTitle}</strong>
+                      </p>
+                    )}
+
+                    {certificate.technologyUsed && (
+                      <p className="line">
+                        Technologies: <strong>{certificate.technologyUsed}</strong>
+                      </p>
+                    )}
+
+                    {certificate.projectDescription && (
+                      <p className="line small" style={{ fontStyle: "italic", marginTop: "4px" }}>
+                        &ldquo;{certificate.projectDescription}&rdquo;
+                      </p>
+                    )}
 
                     <p className="line small">
                       Requested: {fmtDateTime(certificate.requestedAt)}

@@ -43,6 +43,129 @@ const css = `
 .cg-embedded-header h2{font-size:24px;font-weight:800;color:#111827;margin:10px 0 6px}
 .cg-embedded-header p{color:#64748b;font-size:14px;margin:0}
 
+/* Certificate Request Details Modal */
+.cg-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(4px);
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  animation: cgFadeIn 0.2s ease;
+}
+@keyframes cgFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.cg-modal-box {
+  background: #ffffff;
+  border-radius: 18px;
+  max-width: 620px;
+  width: 100%;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.25);
+  border: 1px solid #e2e8f0;
+  animation: cgPopIn 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  overflow: hidden;
+}
+@keyframes cgPopIn {
+  from { transform: scale(0.95); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+.cg-modal-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 18px 24px;
+  border-bottom: 1px solid #f1f5f9;
+}
+.cg-modal-head h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 800;
+  color: #0f172a;
+}
+.cg-modal-close {
+  background: transparent;
+  border: none;
+  font-size: 24px;
+  line-height: 1;
+  color: #64748b;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 6px;
+}
+.cg-modal-close:hover {
+  background: #f1f5f9;
+  color: #0f172a;
+}
+.cg-modal-form {
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  max-height: calc(90vh - 130px);
+}
+.cg-modal-body {
+  padding: 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.cg-modal-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+@media (max-width: 580px) {
+  .cg-modal-grid {
+    grid-template-columns: 1fr;
+  }
+}
+.cg-modal-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  text-align: left;
+}
+.cg-modal-field span {
+  font-size: 12px;
+  font-weight: 700;
+  color: #475569;
+}
+.cg-modal-field input,
+.cg-modal-field textarea {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 11px 13px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background: #f8fafc;
+  font-size: 14px;
+  color: #0f172a;
+  font-family: inherit;
+  transition: all 0.15s ease;
+}
+.cg-modal-field input:focus,
+.cg-modal-field textarea:focus {
+  border-color: #2563eb;
+  background: #ffffff;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+.cg-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 16px 24px;
+  border-top: 1px solid #f1f5f9;
+  background: #f8fafc;
+}
+
 /* PCS Global Certificate Template CSS */
 .cert-outer {
   background: #fff;
@@ -237,6 +360,19 @@ export default function CertificateGenerator({ embedded = false }) {
   const [loading, setLoading] = useState(false);
   const [downloading, setDownloading] = useState(false);
 
+  const [showModal, setShowModal] = useState(false);
+  const [previewTemplate, setPreviewTemplate] = useState(false);
+  const [detailsForm, setDetailsForm] = useState({
+    name: "",
+    rollNo: "",
+    course: "",
+    courseCategory: "",
+    college: "",
+    projectTitle: "",
+    projectDescription: "",
+    technologyUsed: "",
+  });
+
   const certRef = useRef(null);
 
   const auth = (t) => ({ headers: { Authorization: `Bearer ${t}` } });
@@ -258,6 +394,35 @@ export default function CertificateGenerator({ embedded = false }) {
       .finally(() => setChecking(false));
   }, []);
 
+  // Synchronize student certificate details into form
+  useEffect(() => {
+    if (data) {
+      const c = data.certificate;
+      setDetailsForm((prev) => ({
+        name: c?.name || prev.name || data.name || "",
+        rollNo: c?.rollNo || prev.rollNo || data.loginId || "",
+        course: c?.course || prev.course || "B.Tech",
+        courseCategory:
+          c?.courseCategory ||
+          prev.courseCategory ||
+          "Electronics & Communication (ECE)",
+        college: c?.college || prev.college || "MAKAUT (WBUT)",
+        projectTitle:
+          c?.projectTitle ||
+          prev.projectTitle ||
+          "Telecom Customer Churn Analysis & Prediction Using Machine Learning",
+        projectDescription:
+          c?.projectDescription ||
+          prev.projectDescription ||
+          "Machine learning project predicting telecom customer churn using SMOTE-ENN and models like Random Forest, Gradient Boosting, and XGBoost.",
+        technologyUsed:
+          c?.technologyUsed ||
+          prev.technologyUsed ||
+          "Data Science & Artificial Intelligence",
+      }));
+    }
+  }, [data]);
+
   async function handleLogin(e) {
     e.preventDefault();
     setError("");
@@ -274,11 +439,13 @@ export default function CertificateGenerator({ embedded = false }) {
     }
   }
 
-  async function submitRequest() {
+  async function submitRequest(e) {
+    if (e && e.preventDefault) e.preventDefault();
     setError("");
     setLoading(true);
     try {
-      await axios.post(`${API}/request`, {}, auth(token));
+      await axios.post(`${API}/request`, detailsForm, auth(token));
+      setShowModal(false);
       await loadStatus(token);
     } catch (err) {
       setError(err.response?.data?.message || "Request failed.");
@@ -327,11 +494,15 @@ export default function CertificateGenerator({ embedded = false }) {
   const cert = data?.certificate;
   const status = cert?.status;
 
-  // Dynamic values with fallback if backend properties differ
-  const studentRoll = data?.rollNo || data?.roll || data?.loginId || "—";
-  const studentCourse = data?.course || data?.program || data?.degree || "B.Tech";
-  const studentCategory = data?.courseCategory || data?.branch || data?.domain || cert?.domain || "Electronics & Communication (ECE)";
-  const studentCollege = data?.college || data?.institution || "MAKAUT (WBUT)";
+  // Dynamic values updated according to student's submitted details
+  const studentName = cert?.name || detailsForm.name || data?.name || "Student";
+  const studentRoll = cert?.rollNo || detailsForm.rollNo || data?.rollNo || data?.roll || data?.loginId || "—";
+  const studentCourse = cert?.course || detailsForm.course || data?.course || data?.program || data?.degree || "B.Tech";
+  const studentCategory = cert?.courseCategory || detailsForm.courseCategory || data?.courseCategory || data?.branch || data?.domain || cert?.domain || "Electronics & Communication (ECE)";
+  const studentCollege = cert?.college || detailsForm.college || data?.college || data?.institution || "MAKAUT (WBUT)";
+  const projectTitle = cert?.projectTitle || detailsForm.projectTitle || "Telecom Customer Churn Analysis & Prediction Using Machine Learning";
+  const projectDescription = cert?.projectDescription || detailsForm.projectDescription || "Machine learning project predicting telecom customer churn using SMOTE-ENN and models like Random Forest, Gradient Boosting, and XGBoost.";
+  const technologyUsed = cert?.technologyUsed || detailsForm.technologyUsed || cert?.technologies || "Data Science & Artificial Intelligence";
 
   return (
     <div className={`cg-wrap ${embedded ? "cg-embedded" : ""}`}>
@@ -488,60 +659,300 @@ export default function CertificateGenerator({ embedded = false }) {
               <button
                 className="cg-btn"
                 style={{ marginTop: 16 }}
-                onClick={submitRequest}
-                disabled={loading}
+                onClick={() => setShowModal(true)}
               >
-                {loading ? "Submitting..." : "✈ Submit Certificate Request to Admin"}
+                fill details to request certificate
               </button>
+            </div>
+          )}
+
+          {/* ===================================================
+              DIALOG / MODAL: FILL DETAILS TO REQUEST CERTIFICATE
+          =================================================== */}
+          {showModal && (
+            <div className="cg-modal-backdrop" onClick={() => setShowModal(false)}>
+              <div className="cg-modal-box" onClick={(e) => e.stopPropagation()}>
+                <div className="cg-modal-head">
+                  <div>
+                    <h3>Certificate Request Details</h3>
+                    <small style={{ color: "#64748b" }}>
+                      Fill in your details for official certificate generation
+                    </small>
+                  </div>
+                  <button
+                    type="button"
+                    className="cg-modal-close"
+                    onClick={() => setShowModal(false)}
+                    aria-label="Close"
+                  >
+                    &times;
+                  </button>
+                </div>
+
+                <form className="cg-modal-form" onSubmit={submitRequest}>
+                  <div className="cg-modal-body">
+                    {error && <div className="cg-err">{error}</div>}
+
+                    <div className="cg-modal-grid">
+                      <label className="cg-modal-field">
+                        <span>Name *</span>
+                        <input
+                          type="text"
+                          placeholder="Name"
+                          value={detailsForm.name}
+                          onChange={(e) =>
+                            setDetailsForm({ ...detailsForm, name: e.target.value })
+                          }
+                          required
+                        />
+                      </label>
+
+                      <label className="cg-modal-field">
+                        <span>Roll no. *</span>
+                        <input
+                          type="text"
+                          placeholder="Roll no."
+                          value={detailsForm.rollNo}
+                          onChange={(e) =>
+                            setDetailsForm({ ...detailsForm, rollNo: e.target.value })
+                          }
+                          required
+                        />
+                      </label>
+                    </div>
+
+                    <div className="cg-modal-grid">
+                      <label className="cg-modal-field">
+                        <span>Course *</span>
+                        <input
+                          type="text"
+                          placeholder="Course"
+                          value={detailsForm.course}
+                          onChange={(e) =>
+                            setDetailsForm({ ...detailsForm, course: e.target.value })
+                          }
+                          required
+                        />
+                      </label>
+
+                      <label className="cg-modal-field">
+                        <span>Course category *</span>
+                        <input
+                          type="text"
+                          placeholder="Course category"
+                          value={detailsForm.courseCategory}
+                          onChange={(e) =>
+                            setDetailsForm({
+                              ...detailsForm,
+                              courseCategory: e.target.value,
+                            })
+                          }
+                          required
+                        />
+                      </label>
+                    </div>
+
+                    <label className="cg-modal-field">
+                      <span>College *</span>
+                      <input
+                        type="text"
+                        placeholder="College"
+                        value={detailsForm.college}
+                        onChange={(e) =>
+                          setDetailsForm({ ...detailsForm, college: e.target.value })
+                        }
+                        required
+                      />
+                    </label>
+
+                    <label className="cg-modal-field">
+                      <span>Project title *</span>
+                      <input
+                        type="text"
+                        placeholder="Project title"
+                        value={detailsForm.projectTitle}
+                        onChange={(e) =>
+                          setDetailsForm({
+                            ...detailsForm,
+                            projectTitle: e.target.value,
+                          })
+                        }
+                        required
+                      />
+                    </label>
+
+                    <label className="cg-modal-field">
+                      <span>Project description *</span>
+                      <textarea
+                        rows={3}
+                        placeholder="Project description"
+                        value={detailsForm.projectDescription}
+                        onChange={(e) =>
+                          setDetailsForm({
+                            ...detailsForm,
+                            projectDescription: e.target.value,
+                          })
+                        }
+                        required
+                      />
+                    </label>
+
+                    <label className="cg-modal-field">
+                      <span>Technology used *</span>
+                      <input
+                        type="text"
+                        placeholder="Technology used"
+                        value={detailsForm.technologyUsed}
+                        onChange={(e) =>
+                          setDetailsForm({
+                            ...detailsForm,
+                            technologyUsed: e.target.value,
+                          })
+                        }
+                        required
+                      />
+                    </label>
+                  </div>
+
+                  <div className="cg-modal-footer">
+                    <button
+                      type="button"
+                      className="cg-btn outline"
+                      onClick={() => setShowModal(false)}
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      className="cg-btn blue"
+                      disabled={loading}
+                    >
+                      {loading ? "Submitting..." : "Submit Certificate Request to Admin"}
+                    </button>
+                  </div>
+                </form>
+              </div>
             </div>
           )}
 
           {status === "pending" && (
             <div className="cg-card cg-mid cg-center">
               <div className="cg-icon gold">⏳</div>
-              <h3 style={{ margin: 0 }}>Awaiting Admin Endorsement</h3>
-              <p style={{ color: "#64748b", fontSize: 14 }}>
-                Your request was submitted on {fmtDate(cert.requestedAt)}. The
-                administrator is reviewing it. Please check back later.
+              <h3 style={{ margin: "0 0 6px" }}>Awaiting Admin Endorsement</h3>
+              <p style={{ color: "#64748b", fontSize: 14, margin: "0 0 16px" }}>
+                Your request was submitted on {fmtDate(cert?.requestedAt || new Date())}. The
+                administrator is reviewing your submitted details in the Certificate Endorsements queue.
               </p>
-              <button className="cg-btn outline" onClick={() => loadStatus(token)}>
-                ↻ Refresh Status
-              </button>
+
+              <div
+                style={{
+                  textAlign: "left",
+                  background: "#f8fafc",
+                  border: "1px solid #e2e8f0",
+                  borderRadius: 12,
+                  padding: "14px 18px",
+                  marginBottom: 18,
+                  fontSize: 13,
+                }}
+              >
+                <b style={{ display: "block", marginBottom: 8, color: "#1e293b" }}>
+                  📋 Submitted Details for Certificate:
+                </b>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "6px 14px" }}>
+                  <div><span style={{ color: "#64748b" }}>Name:</span> <strong>{studentName}</strong></div>
+                  <div><span style={{ color: "#64748b" }}>Roll No:</span> <strong>{studentRoll}</strong></div>
+                  <div><span style={{ color: "#64748b" }}>Course:</span> <strong>{studentCourse}</strong></div>
+                  <div><span style={{ color: "#64748b" }}>Category:</span> <strong>{studentCategory}</strong></div>
+                  <div style={{ gridColumn: "1 / -1" }}><span style={{ color: "#64748b" }}>College:</span> <strong>{studentCollege}</strong></div>
+                  <div style={{ gridColumn: "1 / -1" }}><span style={{ color: "#64748b" }}>Project:</span> <strong>{projectTitle}</strong></div>
+                  <div style={{ gridColumn: "1 / -1" }}><span style={{ color: "#64748b" }}>Technologies:</span> <strong>{technologyUsed}</strong></div>
+                </div>
+              </div>
+
+              <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap" }}>
+                <button
+                  type="button"
+                  className="cg-btn outline"
+                  onClick={() => setShowModal(true)}
+                >
+                  ✏ Edit Submitted Details
+                </button>
+                <button
+                  type="button"
+                  className="cg-btn blue"
+                  onClick={() => setPreviewTemplate(!previewTemplate)}
+                >
+                  {previewTemplate ? "Hide Certificate Preview" : "👁 Preview Certificate Template"}
+                </button>
+                <button
+                  type="button"
+                  className="cg-btn outline"
+                  onClick={() => loadStatus(token)}
+                >
+                  ↻ Refresh Status
+                </button>
+              </div>
             </div>
           )}
 
-          {status === "approved" && (
+          {(status === "approved" || (status === "pending" && previewTemplate)) && (
             <>
-              <div className="cg-banner">
-                <div>
-                  <b>✔ Certificate Issued &amp; Verified</b>
-                  <small>
-                    Officially endorsed by {cert.endorsedBy} · Standing: {cert.grade}
-                  </small>
+              {status === "approved" ? (
+                <div className="cg-banner">
+                  <div>
+                    <b>✔ Certificate Issued &amp; Verified</b>
+                    <small>
+                      Officially endorsed by {cert?.endorsedBy || "Administrator"} · Standing: {cert?.grade || "Grade A"}
+                    </small>
+                  </div>
+                  <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                    <button
+                      className="cg-btn outline"
+                      style={{ padding: "9px 16px", fontSize: 12 }}
+                      onClick={() => {
+                        navigator.clipboard?.writeText(cert?.certificateNo || "");
+                        alert("Certificate ID copied: " + cert?.certificateNo);
+                      }}
+                    >
+                      Copy Cert ID
+                    </button>
+                    <button className="cg-btn green" onClick={() => window.print()}>
+                      🖨 Print
+                    </button>
+                    <button
+                      className="cg-btn blue"
+                      onClick={downloadPDF}
+                      disabled={downloading}
+                    >
+                      {downloading ? "Preparing PDF..." : "⬇ Download PDF"}
+                    </button>
+                  </div>
                 </div>
-                <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                  <button
-                    className="cg-btn outline"
-                    style={{ padding: "9px 16px", fontSize: 12 }}
-                    onClick={() => {
-                      navigator.clipboard?.writeText(cert.certificateNo);
-                      alert("Certificate ID copied: " + cert.certificateNo);
-                    }}
-                  >
-                    Copy Cert ID
-                  </button>
-                  <button className="cg-btn green" onClick={() => window.print()}>
-                    🖨 Print
-                  </button>
-                  <button
-                    className="cg-btn blue"
-                    onClick={downloadPDF}
-                    disabled={downloading}
-                  >
-                    {downloading ? "Preparing PDF..." : "⬇ Download PDF"}
-                  </button>
+              ) : (
+                <div
+                  className="cg-banner"
+                  style={{ background: "#eff6ff", borderColor: "#93c5fd" }}
+                >
+                  <div>
+                    <b style={{ color: "#1d4ed8" }}>
+                      👁 Certificate Template Preview (Pending Endorsement)
+                    </b>
+                    <small style={{ color: "#2563eb" }}>
+                      This template is rendered with your submitted details and will be finalized upon admin approval.
+                    </small>
+                  </div>
+                  <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                    <button
+                      type="button"
+                      className="cg-btn outline"
+                      style={{ padding: "9px 16px", fontSize: 12 }}
+                      onClick={() => setShowModal(true)}
+                    >
+                      ✏ Edit Details
+                    </button>
+                  </div>
                 </div>
-              </div>
+              )}
 
               <div className="cert-print">
                 <div className="cert-outer" ref={certRef}>
@@ -562,12 +973,12 @@ export default function CertificateGenerator({ embedded = false }) {
 
                     {/* Date */}
                     <div className="cert-date-row">
-                      Date: {fmtDate(cert.approvedAt) || "1st August 2026"}
+                      Date: {status === "approved" ? (fmtDate(cert?.approvedAt) || "1st August 2026") : `${fmtDate(new Date())} (Draft Preview)`}
                     </div>
 
-                    {/* Student Info - Fully Dynamic with multiple fallback checks */}
+                    {/* Student Info - Fully Dynamic with student details */}
                     <div className="cert-student-info">
-                      <div><b>Name:</b> {data.name}</div>
+                      <div><b>Name:</b> {studentName}</div>
                       <div><b>Id No:</b> {studentRoll}</div>
                       <div><b>Course:</b> {studentCourse}</div>
                       <div><b>Course Category:</b> {studentCategory}</div>
@@ -579,24 +990,24 @@ export default function CertificateGenerator({ embedded = false }) {
 
                     {/* Body Paragraph 1 */}
                     <div className="cert-para">
-                      This is to certify that <b>{data.name}</b>, a student of <b>{studentCourse} ({studentCategory})</b> from <b>{studentCollege}</b>, has successfully completed his industrial training with project at PCS Global (Perennation Computer Solutions Global Pvt. Ltd.) from {fmtDate(cert.startDate || "2026-06-01")} to {fmtDate(cert.endDate || "2026-08-01")}.
+                      This is to certify that <b>{studentName}</b>, a student of <b>{studentCourse} ({studentCategory})</b> from <b>{studentCollege}</b>, has successfully completed his industrial training with project at PCS Global (Perennation Computer Solutions Global Pvt. Ltd.) from {fmtDate(cert?.startDate || cert?.requestedAt || "2026-06-01")} to {fmtDate(cert?.approvedAt || cert?.endDate || "2026-08-01")}.
                     </div>
 
                     {/* Body Paragraph 2 */}
                     <div className="cert-para">
-                      During the training period, he underwent rigorous and structured training with a focus on <b>{cert.projectTitle || "Telecom Customer Churn Analysis & Prediction Using Machine Learning"}</b>, covering multiple concepts, practical implementations, and real-world use cases. He successfully completed all assigned tasks and demonstrated strong technical understanding and problem-solving skills.
+                      During the training period, he underwent rigorous and structured training with a focus on <b>{projectTitle}</b>, covering multiple concepts, practical implementations, and real-world use cases. He successfully completed all assigned tasks and demonstrated strong technical understanding and problem-solving skills.
                     </div>
 
                     {/* Project Details Box */}
                     <div className="cert-project-box">
-                      <div><b>Project Title:</b> {cert.projectTitle || "Telecom Customer Churn Analysis & Prediction Using Machine Learning"}</div>
-                      <div style={{ margin: "6px 0" }}><b>Project Description:</b> {cert.projectDescription || "Machine learning project predicting telecom customer churn using SMOTE-ENN and models like Random Forest, Gradient Boosting, and XGBoost."}</div>
-                      <div><b>Technologies Used:</b> {cert.technologies || "Data Science & Artificial Intelligence"}</div>
+                      <div><b>Project Title:</b> {projectTitle}</div>
+                      <div style={{ margin: "6px 0" }}><b>Project Description:</b> {projectDescription}</div>
+                      <div><b>Technologies Used:</b> {technologyUsed}</div>
                     </div>
 
                     {/* Body Paragraph 3 */}
                     <div className="cert-para">
-                      Throughout the training, <b>{data.name}</b> was found to be sincere, hardworking, disciplined, and punctual. His conduct and performance during the training period were commendable.
+                      Throughout the training, <b>{studentName}</b> was found to be sincere, hardworking, disciplined, and punctual. His conduct and performance during the training period were commendable.
                     </div>
 
                     {/* Body Paragraph 4 */}
@@ -607,10 +1018,12 @@ export default function CertificateGenerator({ embedded = false }) {
                     {/* Bottom Section: ID & QR on left, Signature on right */}
                     <div className="cert-footer-section">
                       <div>
-                        <div className="cert-id-text">Certificate ID: {cert.certificateNo}</div>
+                        <div className="cert-id-text">
+                          Certificate ID: {status === "approved" ? cert?.certificateNo : "PENDING ENDORSEMENT"}
+                        </div>
                         <div className="cert-qr-area">
                           <img
-                            src={`https://api.qrserver.com/v1/create-qr-code/?size=80x80&data=${cert.certificateNo}`}
+                            src={`https://api.qrserver.com/v1/create-qr-code/?size=80x80&data=${cert?.certificateNo || "PENDING"}`}
                             alt="Scan to Verify"
                             className="cert-qr-img"
                           />
@@ -622,7 +1035,7 @@ export default function CertificateGenerator({ embedded = false }) {
                         <div style={{ fontSize: "11px", color: "#64748b", marginBottom: "4px" }}>Yours Sincerely,</div>
                         <div style={{ fontSize: "10px", color: "#334155", fontWeight: 700, marginBottom: "8px" }}>For Perennation Computer Solutions Global Pvt Ltd</div>
                         <div className="cert-sig-line">Alalder</div>
-                        <div className="cert-sig-name">{cert.endorsedBy || "Alok Halder"}</div>
+                        <div className="cert-sig-name">{cert?.endorsedBy || "Alok Halder"}</div>
                         <div className="cert-sig-title">Chief Executive Officer (CEO)</div>
                       </div>
                     </div>
